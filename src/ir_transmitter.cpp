@@ -52,10 +52,11 @@ void IRTransmitter::begin(const IrPinConfig& pins) {
         // and benefits from being on the same core as the Arduino task so
         // FreeRTOS cooperative scheduling keeps them interleaved cleanly.
         // Priority 5 > loop() priority (1) so IR fires promptly when queued.
+        // Stack 6KB: 8 emitters × doTransmit frame + IRsend overhead is safe.
         xTaskCreatePinnedToCore(
             _txTask,        // task function
             "ir_tx",        // name
-            4096,           // stack (doTransmit is recursive-free, 4 KB is ample)
+            6144,           // stack (8 emitters — bumped from 4096)
             this,           // param → IRTransmitter instance
             5,              // priority (higher than loop = 1)
             nullptr,        // handle not stored — task runs forever
@@ -125,7 +126,10 @@ void IRTransmitter::createSender(uint8_t idx, uint8_t pin) {
         _pins[idx] = 255;
         return;
     }
-    _senders[idx] = new (std::nothrow) IRsend(pin, false, true);
+    // Pass idx as the RMT channel (0-7). Each emitter MUST have its own
+    // dedicated RMT channel; sharing channels causes corrupted waveforms.
+    // IRsend constructor: (pin, inverted, use_modulation, channel)
+    _senders[idx] = new (std::nothrow) IRsend(pin, false, true, idx);
     if (!_senders[idx]) {
         Serial.printf(DEBUG_TAG " ERROR: IRsend[%d] allocation failed (OOM)\n", idx);
         _pins[idx] = 255;

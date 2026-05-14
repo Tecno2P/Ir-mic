@@ -15,8 +15,11 @@
 #include <Arduino.h>
 
 // ── Hardware limits ──────────────────────────────────────────
-#define IR_MAX_EMITTERS   4    // max simultaneous IRsend instances
-                               // (RMT channels 0-3, well within 8 total)
+#define IR_MAX_EMITTERS   8    // max simultaneous IRsend instances
+                               // ESP32 has 8 RMT TX channels — we use all 8.
+                               // Each emitter gets its own RMT channel, GPIO,
+                               // and IRsend instance.  All fire in parallel
+                               // inside transmit() / transmitRaw().
 #define IR_MAX_RECEIVERS  1    // IRremoteESP8266 timer-based: 1 active
 
 // ── Default pin assignments ──────────────────────────────────
@@ -26,6 +29,10 @@
 #define IR_DEFAULT_EMIT_PIN_1 26
 #define IR_DEFAULT_EMIT_PIN_2 25
 #define IR_DEFAULT_EMIT_PIN_3 33
+#define IR_DEFAULT_EMIT_PIN_4 32
+#define IR_DEFAULT_EMIT_PIN_5 17
+#define IR_DEFAULT_EMIT_PIN_6 16
+#define IR_DEFAULT_EMIT_PIN_7 4
 
 // ── Pin classification ───────────────────────────────────────
 
@@ -170,7 +177,7 @@ struct IrPinConfig {
     // Emitters (up to IR_MAX_EMITTERS)
     uint8_t  emitPin[IR_MAX_EMITTERS];
     bool     emitEnabled[IR_MAX_EMITTERS];
-    uint8_t  emitCount;         // Number of configured emitters (1-4)
+    uint8_t  emitCount;         // Number of configured emitters (1-8)
 
     IrPinConfig() {
         recvPin        = IR_DEFAULT_RECV_PIN;
@@ -178,10 +185,18 @@ struct IrPinConfig {
         emitPin[1]     = IR_DEFAULT_EMIT_PIN_1;
         emitPin[2]     = IR_DEFAULT_EMIT_PIN_2;
         emitPin[3]     = IR_DEFAULT_EMIT_PIN_3;
+        emitPin[4]     = IR_DEFAULT_EMIT_PIN_4;
+        emitPin[5]     = IR_DEFAULT_EMIT_PIN_5;
+        emitPin[6]     = IR_DEFAULT_EMIT_PIN_6;
+        emitPin[7]     = IR_DEFAULT_EMIT_PIN_7;
         emitEnabled[0] = true;
         emitEnabled[1] = false;
         emitEnabled[2] = false;
         emitEnabled[3] = false;
+        emitEnabled[4] = false;
+        emitEnabled[5] = false;
+        emitEnabled[6] = false;
+        emitEnabled[7] = false;
         emitCount      = 1;
     }
 

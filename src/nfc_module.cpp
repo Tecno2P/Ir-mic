@@ -373,7 +373,7 @@ String NfcModule::dictProgressJson() const {
     j += "\"pct\":"       + String(pct)              + ",";
     j += "\"found\":"     + String(_dictFoundCount)  + ",";
     j += "\"elapsed\":"   + String(elapsed)          + ",";
-    j += "\"running\":"   + (_dictRunning ? "true" : "false") + "}";
+    j += String("\"running\":") + (_dictRunning ? "true" : "false") + "}";
     return j;
 }
 
