@@ -80,7 +80,6 @@ void SubGhzModule::setEnabled(bool en) {
     if (!en) {
         // Stop any active capture
         _capturing   = false;
-        _receiving   = false;
         _hwConnected = false;
         // Put CC1101 to sleep via SPI if still alive
         if (_cc1101Spi) {
