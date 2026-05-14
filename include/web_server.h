@@ -11,6 +11,10 @@
 #include "config.h"
 #include "gpio_config.h"
 
+// Shared JSON response helpers (defined in web_server.cpp, used by all batch files)
+void sendJson(AsyncWebServerRequest* req, int code, const String& json);
+void sendJsonDoc(AsyncWebServerRequest* req, int code, const JsonDocument& doc);
+
 class WebUI {
 public:
     WebUI();

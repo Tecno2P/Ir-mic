@@ -33,7 +33,7 @@ WebUI webUI;
 // FIX: sendJson now uses AsyncResponseStream - writes directly to TCP send buffer.
 // The old version built a String copy of 'json' and then copied it again into
 // the response buffer (two allocations). AsyncResponseStream eliminates both.
-static void sendJson(AsyncWebServerRequest* req, int code, const String& json) {
+void sendJson(AsyncWebServerRequest* req, int code, const String& json) {
     AsyncResponseStream* r = req->beginResponseStream("application/json");
     r->setCode(code);
     r->addHeader("Access-Control-Allow-Origin", "*");
@@ -43,7 +43,7 @@ static void sendJson(AsyncWebServerRequest* req, int code, const String& json) {
 
 // Convenience overload: serialize a JsonDocument directly to stream - zero String alloc.
 // Use this for all new handlers: sendJsonDoc(req, 200, doc)
-static void sendJsonDoc(AsyncWebServerRequest* req, int code, const JsonDocument& doc) {
+void sendJsonDoc(AsyncWebServerRequest* req, int code, const JsonDocument& doc) {
     AsyncResponseStream* r = req->beginResponseStream("application/json");
     r->setCode(code);
     r->addHeader("Access-Control-Allow-Origin", "*");

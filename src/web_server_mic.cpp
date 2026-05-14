@@ -13,8 +13,6 @@
 extern AuthManager  authMgr;
 extern AuditManager auditMgr;
 extern WebUI        webUI;
-extern void sendJson(AsyncWebServerRequest* req, int code, const String& body);
-
 // ── WS Audio stream task (Core 0) ────────────────────────────
 static TaskHandle_t _micTask = nullptr;
 static bool         _micStop = false;
