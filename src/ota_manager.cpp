@@ -1,5 +1,5 @@
 // ============================================================
-//  ota_manager.cpp  –  OTA firmware + filesystem update v3.0
+//  ota_manager.cpp  -  OTA firmware + filesystem update v3.0
 //
 //  PERMANENT OTA STORAGE-FULL FIX:
 //
@@ -11,25 +11,25 @@
 //  v3.0 fixes ALL these cases using real IDF OTA APIs:
 //
 //  1. esp_ota_get_next_update_partition(NULL)
-//     → Returns pointer to the target partition, or NULL if none exists.
-//     → NULL means otadata is corrupt or partition table is wrong.
-//     → We check this FIRST and abort with a clear error.
+//     -> Returns pointer to the target partition, or NULL if none exists.
+//     -> NULL means otadata is corrupt or partition table is wrong.
+//     -> We check this FIRST and abort with a clear error.
 //
 //  2. esp_partition_t::size
-//     → Real partition size in bytes from the partition table.
-//     → Compared against declared firmware size before accepting upload.
+//     -> Real partition size in bytes from the partition table.
+//     -> Compared against declared firmware size before accepting upload.
 //
 //  3. esp_ota_get_state_partition()
-//     → Checks if the target slot is in a valid state to receive update.
+//     -> Checks if the target slot is in a valid state to receive update.
 //
 //  4. LittleFS deep cleanup
-//     → Removes log archives, trims audit log, removes temp files.
-//     → Ensures LittleFS has breathing room (not related to OTA flash
+//     -> Removes log archives, trims audit log, removes temp files.
+//     -> Ensures LittleFS has breathing room (not related to OTA flash
 //        but prevents filesystem-full crash on boot after OTA).
 //
 //  5. esp_ota_mark_app_valid_cancel_rollback()
-//     → Called AFTER successful reboot via markOtaBootValid() in main.cpp.
-//     → Prevents rollback-on-reboot if otadata was previously in pending state.
+//     -> Called AFTER successful reboot via markOtaBootValid() in main.cpp.
+//     -> Prevents rollback-on-reboot if otadata was previously in pending state.
 //
 // ============================================================
 #include "ota_manager.h"
@@ -239,7 +239,7 @@ void OtaManager::_cleanLittleFSBeforeOta() {
     }
 
     size_t after = fsFreeBytes();
-    Serial.printf(DEBUG_TAG " OTA cleanup done: LittleFS %u KB → %u KB free (+%u KB)\n",
+    Serial.printf(DEBUG_TAG " OTA cleanup done: LittleFS %u KB -> %u KB free (+%u KB)\n",
                   (unsigned)(before / 1024),
                   (unsigned)(after  / 1024),
                   (unsigned)((after > before ? after - before : 0) / 1024));

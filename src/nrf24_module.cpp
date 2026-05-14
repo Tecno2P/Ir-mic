@@ -1,5 +1,5 @@
 // ============================================================
-//  nrf24_module.cpp  –  NRF24L01 Real Hardware Implementation
+//  nrf24_module.cpp  -  NRF24L01 Real Hardware Implementation
 // ============================================================
 #include "nrf24_module.h"
 
@@ -104,7 +104,7 @@ void Nrf24Module::loop() {
     // Old code: 125 channels × delayMicroseconds(128) = 16 ms blocked per call.
     // hw_poll runs on a 20 ms vTaskDelayUntil() tick, so the old scan
     // consumed 80% of hw_poll's budget, starving NFC/RFID/SubGHz.
-    // New code: 10 channels × 128 µs = 1.28 ms per tick - ~12x improvement.
+    // New code: 10 channels × 128 us = 1.28 ms per tick - ~12x improvement.
     // A full 125-channel sweep completes in 13 loop() ticks (~260 ms) instead
     // of being one atomic 16 ms block. Results are equally accurate.
 #define NRF24_SCAN_CHUNK 10

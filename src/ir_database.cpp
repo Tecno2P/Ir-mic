@@ -2,22 +2,22 @@
 //  ir_database.cpp
 //
 //  Storage improvements in this version:
-//    Fix 1 – Auto-save received IR signals
+//    Fix 1 - Auto-save received IR signals
 //             autoSaveReceived() checks for duplicates (same
 //             protocol + code) before adding to the DB.
 //             Setting persisted to IR_AUTO_SAVE_FILE.
 //
-//    Fix 2 – Lazy save (batch flash writes)
+//    Fix 2 - Lazy save (batch flash writes)
 //             add/update/remove/clear call _markDirty() instead
 //             of save().  loop() flushes after DB_LAZY_SAVE_MS ms
 //             of inactivity.  importJson/clear still flush
 //             immediately because they replace the whole DB.
 //
-//    Fix 3 – RAW memory guard
+//    Fix 3 - RAW memory guard
 //             add() rejects new RAW buttons when _rawCount()
 //             >= MAX_RAW_BUTTONS (default 16).
 //
-//    Fix 4 – Streaming JSON save
+//    Fix 4 - Streaming JSON save
 //             save() serialises one IRButton at a time directly
 //             to the LittleFS file.  Peak extra RAM ≈ 1 IRButton
 //             (~1 KB) instead of a full snapshot vector
@@ -58,7 +58,7 @@ bool IRDatabase::begin() {
     _loadAutoSave();
 
     if (!LittleFS.exists(DB_FILE)) {
-        Serial.println(DEBUG_TAG " No DB file – starting with empty database.");
+        Serial.println(DEBUG_TAG " No DB file - starting with empty database.");
         return true;
     }
 
@@ -612,7 +612,7 @@ IRDatabase::validateRestoreJson(const String& json) const {
 }
 
 // ── restore ──────────────────────────────────────────────────
-// Full pipeline: validate → backup → importJson (atomic swap).
+// Full pipeline: validate -> backup -> importJson (atomic swap).
 // The live DB is never touched if validation fails.
 IRDatabase::RestoreResult IRDatabase::restore(const String& json) {
     // Step 1 - validate before touching anything

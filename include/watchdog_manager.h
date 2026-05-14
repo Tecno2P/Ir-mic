@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  watchdog_manager.h  –  Ultra Pro Watchdog v3.0
+//  watchdog_manager.h  -  Ultra Pro Watchdog v3.0
 //  All values are real ESP32 system API readings - zero fake data.
 // ============================================================
 #include <Arduino.h>

@@ -1,5 +1,5 @@
 // ============================================================
-//  log_rotation.cpp  –  Batch 4: Log Rotation + CSV Export
+//  log_rotation.cpp  -  Batch 4: Log Rotation + CSV Export
 // ============================================================
 #include "log_rotation.h"
 #include <SD.h>

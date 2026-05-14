@@ -2,11 +2,11 @@
 //  wifi_manager.cpp  v2.0.6
 //
 //  WiFi Behavior:
-//  1. Startup        → AP ON  (192.168.4.1)
-//  2. STA connects   → wait 7s → AP OFF
-//  3. STA disconnect → AP ON  (192.168.4.1)
-//  4. AP IP always   → 192.168.4.1 (never changes)
-//  5. STA IP         → assigned by router (dynamic)
+//  1. Startup        -> AP ON  (192.168.4.1)
+//  2. STA connects   -> wait 7s -> AP OFF
+//  3. STA disconnect -> AP ON  (192.168.4.1)
+//  4. AP IP always   -> 192.168.4.1 (never changes)
+//  5. STA IP         -> assigned by router (dynamic)
 // ============================================================
 #include "wifi_manager.h"
 #include "rule_manager.h"

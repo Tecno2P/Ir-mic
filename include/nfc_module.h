@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  nfc_module.h  –  PN532 NFC Module (Real HW via Adafruit)
+//  nfc_module.h  -  PN532 NFC Module (Real HW via Adafruit)
 // ============================================================
 #include <Arduino.h>
 #include <SPI.h>
@@ -70,7 +70,7 @@ public:
     void     stopEmulate();
     bool     isEmulating()   const { return _emulating; }
 
-    void     startDictAttack(bool keyB = true);   // keyB=true → also try Key B
+    void     startDictAttack(bool keyB = true);   // keyB=true -> also try Key B
     void     stopDictAttack();
     bool     isDictRunning() const { return _dictRunning; }
     String   pollDictResult();

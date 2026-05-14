@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  ir_transmitter.h  –  Multi-emitter IR transmit wrapper
+//  ir_transmitter.h  -  Multi-emitter IR transmit wrapper
 //
 //  v1.3.0 fixes:
 //    - FreeRTOS mutex replaces bare bool for thread-safety
@@ -21,7 +21,7 @@
 // ── IR TX command (posted to queue for async dispatch) ────────
 struct IrTxCommand {
     IRButton btn;
-    bool     rawMode;   // true → use rawData directly
+    bool     rawMode;   // true -> use rawData directly
 };
 
 class IRTransmitter {

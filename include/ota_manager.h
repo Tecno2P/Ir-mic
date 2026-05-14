@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  ota_manager.h  –  OTA firmware + filesystem update v3.0
+//  ota_manager.h  -  OTA firmware + filesystem update v3.0
 //
 //  v3.0 - Permanent OTA storage-full fix:
 //    + Uses real IDF esp_ota_get_next_update_partition() to detect

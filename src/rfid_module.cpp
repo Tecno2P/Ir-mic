@@ -1,5 +1,5 @@
 // ============================================================
-//  rfid_module.cpp  –  125kHz RFID Real Implementation
+//  rfid_module.cpp  -  125kHz RFID Real Implementation
 //  Manchester decode via GPIO polling, EM4100 64-bit format
 // ============================================================
 #include "rfid_module.h"
@@ -107,9 +107,9 @@ void RfidModule::loop() {
         _lastLevel = level;
         _lastPulse = now;
 
-        // EM4100: 125kHz carrier = 8µs period
-        // Bit period = 64 carrier cycles = 512µs
-        // Manchester half-bit = 256µs (±50%)
+        // EM4100: 125kHz carrier = 8us period
+        // Bit period = 64 carrier cycles = 512us
+        // Manchester half-bit = 256us (±50%)
         const uint32_t HALF_MIN = 150, HALF_MAX = 370;
         const uint32_t FULL_MIN = 380, FULL_MAX = 700;
 
@@ -167,7 +167,7 @@ void RfidModule::loop() {
                 // ── Auto-trigger rule engine + audit on every card scan ──
                 // Previously, triggers only fired if the HTTP /api/rfid/read
                 // endpoint happened to be polled at the right moment.
-                // Now: card detected in hw_poll task → immediately fire rules
+                // Now: card detected in hw_poll task -> immediately fire rules
                 // and broadcast to WebSocket, regardless of HTTP polling.
                 bool known = !_lastCard.name.isEmpty();
                 ruleMgr.triggerRfidScan(uid, _lastCard.name, known);
@@ -271,6 +271,8 @@ bool RfidModule::writeCardAsync(const String& uid) {
 }
 
 
+
+bool RfidModule::writeCard(const String& uid) {
     if (!_hwConnected) return false;
     if (uid.length() < 8) return false;
 
@@ -298,8 +300,8 @@ bool RfidModule::writeCardAsync(const String& uid) {
     //   4. 32-bit data word (block 0: version<<24 | id[0]<<16 | id[1]<<8 | id[2])
     //   5. Repeat for block 1 (remaining ID bytes)
     //
-    // 125kHz carrier period = 8 µs.
-    // Manchester bit period at RF/64 = 512 µs → half-bit = 256 µs.
+    // 125kHz carrier period = 8 us.
+    // Manchester bit period at RF/64 = 512 us -> half-bit = 256 us.
 
     // Configure DATA pin as OUTPUT for write
     if (_cfg.powerPin > 0) digitalWrite(_cfg.powerPin, LOW);
@@ -312,7 +314,7 @@ bool RfidModule::writeCardAsync(const String& uid) {
     }
 
     // Helper: send one Manchester bit at 125kHz (RF/64)
-    // Logic 0 → high-then-low; Logic 1 → low-then-high
+    // Logic 0 -> high-then-low; Logic 1 -> low-then-high
     auto sendBit = [&](bool bit) {
         if (bit) {
             digitalWrite(_cfg.dataPin, LOW);
@@ -343,7 +345,7 @@ bool RfidModule::writeCardAsync(const String& uid) {
     sendBit(0);
 
     // 4. Block 0: T5577 config word for EM4100 emulation
-    //    Modulation=Manchester(2), RF/64, 5 blocks → 0x00148040
+    //    Modulation=Manchester(2), RF/64, 5 blocks -> 0x00148040
     uint32_t configWord = 0x00148040UL;
     sendWord(configWord);
 

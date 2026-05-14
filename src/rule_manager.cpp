@@ -1,5 +1,5 @@
 // ============================================================
-//  rule_manager.cpp  –  Batch 2: IF-THEN Automation Engine
+//  rule_manager.cpp  -  Batch 2: IF-THEN Automation Engine
 // ============================================================
 #include "rule_manager.h"
 #include "audit_manager.h"
@@ -253,7 +253,7 @@ bool RuleManager::setEnabled(uint32_t id, bool en) {
 // JSON deserialization on EVERY call. Since triggerIrReceived() and
 // triggerRfidScan() call listRules() on every IR/RFID event (which can
 // fire at 20+ Hz during capture), this caused:
-//   - Continuous LittleFS reads (flash wear + 5–20ms latency per trigger)
+//   - Continuous LittleFS reads (flash wear + 5-20ms latency per trigger)
 //   - Repeated heap allocation for std::vector<RuleEntry>
 //   - Measurable loop() stalls under concurrent IR + RFID activity
 //

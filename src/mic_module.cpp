@@ -1,5 +1,5 @@
 // ============================================================
-//  mic_module.cpp  –  Hybrid I2S + ADC Mic Module
+//  mic_module.cpp  -  Hybrid I2S + ADC Mic Module
 // ============================================================
 #include "mic_module.h"
 #include "sd_manager.h"
@@ -149,7 +149,7 @@ int16_t MicModule::_applyGain(int32_t raw, uint8_t gain) const {
     return (int16_t)constrain(g, -32768L, 32767L);
 }
 
-// ── I2S read → PCM int16 ─────────────────────────────────────
+// ── I2S read -> PCM int16 ─────────────────────────────────────
 size_t MicModule::_readI2S(int16_t* pcm, size_t maxSamples) {
     static int32_t raw[MIC_DMA_BUF_LEN * 2];
     size_t bytesRead = 0;
@@ -176,7 +176,7 @@ size_t MicModule::_readI2S(int16_t* pcm, size_t maxSamples) {
     return out;
 }
 
-// ── ADC read → PCM int16 ─────────────────────────────────────
+// ── ADC read -> PCM int16 ─────────────────────────────────────
 // ADC gives 0-4095 (12-bit). Center=2048, convert to -32768..32767
 size_t MicModule::_readADC(int16_t* pcm, size_t maxSamples) {
     if (!_adcInited || _adcCount == 0) return 0;
@@ -186,17 +186,17 @@ size_t MicModule::_readADC(int16_t* pcm, size_t maxSamples) {
     if (sampPerMic > 128) sampPerMic = 128; // keep loop fast
 
     // Delay between samples to approximate sample rate
-    // At 16kHz, 1 sample = 62.5µs
+    // At 16kHz, 1 sample = 62.5us
     size_t out = 0;
     int32_t peak = 0;
 
     for (size_t s = 0; s < sampPerMic && out < maxSamples; s++) {
         // Read all ADC mics and mix to mono
-        // Note: analogRead takes ~10µs on ESP32 - at 16kHz we need 62µs/sample
+        // Note: analogRead takes ~10us on ESP32 - at 16kHz we need 62us/sample
         // Multiple mics fill the timing gap naturally - no extra delay needed
         int32_t mixed = 0;
         for (uint8_t m = 0; m < _adcCount; m++) {
-            int32_t raw     = analogRead(_adcPins[m]); // 0-4095, ~10µs each
+            int32_t raw     = analogRead(_adcPins[m]); // 0-4095, ~10us each
             int32_t centered = raw - 2048;              // -2048..2047
             int32_t scaled   = centered * 16;           // -32768..32752
             mixed += _applyGain(scaled, _adcGains[m]);
@@ -335,7 +335,7 @@ bool MicModule::startRecording(const String& filename) {
     _recFile.write(hdr, WAV_HEADER_SIZE);
 
     _recBytes = 0; _recStartMs = millis(); _recording = true;
-    Serial.printf("[MIC] Rec → %s (%s)\n",
+    Serial.printf("[MIC] Rec -> %s (%s)\n",
         _recFilename.c_str(), _recOnSd?"SD":"LittleFS");
     return true;
 }

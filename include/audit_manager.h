@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  audit_manager.h  –  Audit Trail / Event Log System
+//  audit_manager.h  -  Audit Trail / Event Log System
 //
 //  Batch 1 Feature: Har action ka record
 //    - Kisne kiya (module source)

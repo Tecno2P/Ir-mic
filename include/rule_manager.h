@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  rule_manager.h  –  Batch 2: IF-THEN Automation Engine
+//  rule_manager.h  -  Batch 2: IF-THEN Automation Engine
 //
 //  Ek rule = ek trigger condition + ek ya zyada actions
 //
@@ -23,8 +23,8 @@
 //    LOG            - sirf audit log mein likhoo
 //
 //  Example Rule:
-//    IF RFID_UNKNOWN → THEN NOTIFY + BUZZER
-//    IF RFID_SCAN (card="Admin") → THEN IR_TRANSMIT (btn=5) + NOTIFY
+//    IF RFID_UNKNOWN -> THEN NOTIFY + BUZZER
+//    IF RFID_SCAN (card="Admin") -> THEN IR_TRANSMIT (btn=5) + NOTIFY
 //
 //  Storage: /rules/<id>.json
 //  API: /api/v1/rules/*

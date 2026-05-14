@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  sd_manager.h  –  Optional SD card subsystem
+//  sd_manager.h  -  Optional SD card subsystem
 //  v1.0.0  |  ESP32-WROOM-32  |  VSPI bus
 //
 //  DESIGN PRINCIPLES

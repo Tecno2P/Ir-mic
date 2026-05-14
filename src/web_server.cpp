@@ -1,5 +1,5 @@
 // ============================================================
-//  web_server.cpp  –  Async HTTP + WebSocket + All API routes
+//  web_server.cpp  -  Async HTTP + WebSocket + All API routes
 //  v2.1.0 - smoothness fixes applied
 // ============================================================
 #include "web_server.h"
@@ -183,7 +183,7 @@ void WebUI::_flushWsQueue() {
 // String copy (heap alloc) happens before lock - same as before.
 // std::queue::push() can realloc its internal deque - safe only outside
 // portENTER_CRITICAL because portENTER_CRITICAL disables interrupts and
-// ESP-IDF heap_caps_malloc also takes a spinlock → deadlock.
+// ESP-IDF heap_caps_malloc also takes a spinlock -> deadlock.
 void WebUI::_pushWsMessage(const String& msg) {
     if (!_wsMutex) return;
     // Pre-copy outside the lock (malloc must never run inside the lock)
@@ -577,10 +577,10 @@ void WebUI::setupApiRoutes() {
         [this](AsyncWebServerRequest* req) { handleSetAutoSave(req); });
 
     // ── Backup & Restore routes ───────────────────────────────
-    // POST /api/backup          → create backup of current DB
-    // GET  /api/backup          → download the backup file
-    // GET  /api/backup/status   → check if backup exists + metadata
-    // POST /api/restore         → upload JSON, validate, backup, restore
+    // POST /api/backup          -> create backup of current DB
+    // GET  /api/backup          -> download the backup file
+    // GET  /api/backup/status   -> check if backup exists + metadata
+    // POST /api/restore         -> upload JSON, validate, backup, restore
     _server.on("/api/backup", HTTP_POST,
         [this](AsyncWebServerRequest* req) { handleBackupCreate(req); });
 
@@ -793,10 +793,11 @@ void WebUI::handlePwmTest(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
         ? String("NEC AGC burst transmitted at ") + freqKHz +
           " kHz carrier via ESP32 ledc hardware PWM (" +
           (int)irTransmitter.activeCount() + " emitter(s) active)"
-        : "No active emitters - configure TX GPIO in Settings → GPIO first";
+        : "No active emitters - configure TX GPIO in Settings -> GPIO first";
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
     String out;
+    serializeJson(resp, out);
     sendJson(req, ok ? 200 : 500, out);
 }
 
@@ -808,7 +809,7 @@ void WebUI::handlePwmInfo(AsyncWebServerRequest* req) {
     // All values are real ESP32 hardware constants / runtime readings.
     // IRremoteESP8266 uses ESP32 ledc peripheral for carrier generation:
     //   - ledc channel per emitter (up to 8 channels on ESP32)
-    //   - 8-bit duty resolution → 128/255 = ~50% duty cycle for IR
+    //   - 8-bit duty resolution -> 128/255 = ~50% duty cycle for IR
     //   - Carrier frequency = freqKHz * 1000 Hz set via ledcSetup()
     doc["freqKhzDefault"]    = (uint16_t)IR_DEFAULT_FREQ_KHZ;  // from config.h = 38
     doc["freqKhzMin"]        = 20;   // ESP32 ledc lower bound for IR use
@@ -1253,7 +1254,7 @@ void WebUI::handleBackupStatus(AsyncWebServerRequest* req) {
 }
 
 // POST /api/restore  (body: raw JSON of ir_database.json format)
-// Full pipeline: validate → backup current DB → atomic swap.
+// Full pipeline: validate -> backup current DB -> atomic swap.
 void WebUI::handleRestore(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
     if (!authMgr.checkAuth(req)) return;
     // Size guard - reject oversized bodies before any processing
@@ -1268,7 +1269,7 @@ void WebUI::handleRestore(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
 
     String json(reinterpret_cast<const char*>(d), l);
 
-    // Full restore: validate → backup → atomic importJson
+    // Full restore: validate -> backup -> atomic importJson
     IRDatabase::RestoreResult res = irDB.restore(json);
 
     JsonDocument doc;
@@ -1282,11 +1283,13 @@ void WebUI::handleRestore(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
         String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
     String out;
+        serializeJson(doc, out);
         sendJson(req, 200, out);
     } else {
         String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
     String out;
+        serializeJson(doc, out);
         sendJson(req, 400, out);
     }
 }
@@ -1525,6 +1528,7 @@ void WebUI::handleSetGpioPins(AsyncWebServerRequest* req, uint8_t* d, size_t l) 
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
     String out;
+    serializeJson(doc, out);
     sendJson(req, anyError?207:200, out);
 }
 
@@ -1655,6 +1659,7 @@ void WebUI::handleMacroSave(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
         String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
     String out;
+        serializeJson(r, out);
         sendJson(req, 400, out);
         return;
     }

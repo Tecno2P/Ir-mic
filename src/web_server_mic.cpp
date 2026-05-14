@@ -1,5 +1,5 @@
 // ============================================================
-//  web_server_mic.cpp  –  Hybrid Mic API + WS stream
+//  web_server_mic.cpp  -  Hybrid Mic API + WS stream
 // ============================================================
 #include "web_server.h"
 #include "mic_module.h"

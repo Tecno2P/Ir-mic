@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  web_server.h  –  IR Remote Web GUI  v5.0.0
+//  web_server.h  -  IR Remote Web GUI  v5.0.0
 //  All batches combined - clean, no duplicates
 // ============================================================
 #include <Arduino.h>

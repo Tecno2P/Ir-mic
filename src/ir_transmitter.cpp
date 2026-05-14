@@ -1,5 +1,5 @@
 // ============================================================
-//  ir_transmitter.cpp  –  Multi-emitter IR transmit
+//  ir_transmitter.cpp  -  Multi-emitter IR transmit
 //
 //  v1.3.0 fixes applied:
 //    FIX-1: FreeRTOS mutex (_txMutex) replaces bare-bool guard.
@@ -57,7 +57,7 @@ void IRTransmitter::begin(const IrPinConfig& pins) {
             _txTask,        // task function
             "ir_tx",        // name
             6144,           // stack (8 emitters - bumped from 4096)
-            this,           // param → IRTransmitter instance
+            this,           // param -> IRTransmitter instance
             5,              // priority (higher than loop = 1)
             nullptr,        // handle not stored - task runs forever
             1               // Core 1 - same as Arduino loop()
@@ -268,10 +268,10 @@ bool IRTransmitter::transmitRaw(const uint16_t* data, size_t len, uint16_t freqK
 
 // ── doTransmit ───────────────────────────────────────────────
 // Protocol-aware minimum repeats:
-//   SONY      needs ≥3 frames (spec says transmit 3x; cheap receivers need it)
-//   DISH      needs ≥4 frames (satellite protocol requirement)
-//   RC5/RC6   needs ≥2 frames (toggle-bit protocol; single frame often ignored)
-//   COOLIX    needs ≥2 frames (AC protocol; single frame unreliable)
+//   SONY      needs >=3 frames (spec says transmit 3x; cheap receivers need it)
+//   DISH      needs >=4 frames (satellite protocol requirement)
+//   RC5/RC6   needs >=2 frames (toggle-bit protocol; single frame often ignored)
+//   COOLIX    needs >=2 frames (AC protocol; single frame unreliable)
 //   All other protocols: honour btn.repeats (default IR_SEND_REPEATS = 2)
 //
 // Carrier frequency guard:
@@ -300,7 +300,7 @@ bool IRTransmitter::doTransmit(IRsend* s, const IRButton& btn) {
     // Carrier frequency guard - correct any legacy/zero value before TX.
     // Wrong carrier = device can't decode the signal even if timing is perfect.
     uint16_t txFreq = btn.freqKHz;
-    if (txFreq < 33 || txFreq > 56) txFreq = 38;  // out-of-range → safe default
+    if (txFreq < 33 || txFreq > 56) txFreq = 38;  // out-of-range -> safe default
     switch (btn.protocol) {
         case IRProtocol::SONY:                       txFreq = 40; break;  // Sony spec
         case IRProtocol::RC5:  case IRProtocol::RC6: txFreq = 36; break;  // Philips spec
@@ -333,7 +333,7 @@ bool IRTransmitter::doTransmit(IRsend* s, const IRButton& btn) {
             case IRProtocol::JVC:
                 s->sendJVC(btn.code, btn.bits, minRep(2)); break;
             case IRProtocol::DISH:
-                s->sendDISH(btn.code, btn.bits, minRep(4)); break;  // DISH protocol requires ≥4 frames
+                s->sendDISH(btn.code, btn.bits, minRep(4)); break;  // DISH protocol requires >=4 frames
             case IRProtocol::SHARP: {
                 uint8_t addr = (btn.code >> 8) & 0x1F;
                 uint8_t cmd  = btn.code & 0xFF;

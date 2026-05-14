@@ -1,5 +1,5 @@
 // ============================================================
-//  watchdog_manager.cpp  –  Ultra Pro Watchdog v3.0
+//  watchdog_manager.cpp  -  Ultra Pro Watchdog v3.0
 //
 //  REAL implementations of:
 //    - Main loop freeze detection + forced reboot
@@ -140,7 +140,7 @@ void WatchdogManager::loop() {
         auditMgr.log(AuditSource::SYSTEM, "WIFI_LOST",
                      "WDT detected WiFi disconnect", false);
         _internetOk = false;
-        // main loop() calls wifiMgr.loop() every tick â no nudge needed here.
+        // main loop() calls wifiMgr.loop() every tick - no nudge needed here.
     }
     _wifiWasConnected = wifiNow;
 }

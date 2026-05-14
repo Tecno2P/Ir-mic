@@ -1,15 +1,15 @@
 #pragma once
 // ============================================================
-//  ir_receiver.h  –  Dynamic-pin IR receive wrapper
+//  ir_receiver.h  -  Dynamic-pin IR receive wrapper
 //
 //  v1.2.0: IRrecv is now heap-allocated so the active GPIO
 //  can be changed at runtime without rebooting.
 //
 //  Usage:
-//    irReceiver.begin(pin)       – start on given pin
-//    irReceiver.changePin(pin)   – switch to different pin
-//    irReceiver.loop()           – call every loop()
-//    irReceiver.pause/resume()   – suspend for TX window
+//    irReceiver.begin(pin)       - start on given pin
+//    irReceiver.changePin(pin)   - switch to different pin
+//    irReceiver.loop()           - call every loop()
+//    irReceiver.pause/resume()   - suspend for TX window
 // ============================================================
 #include <Arduino.h>
 #include <IRrecv.h>

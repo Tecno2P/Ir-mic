@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  mic_module.h  –  Hybrid Mic: I2S Digital + ADC Analog
+//  mic_module.h  -  Hybrid Mic: I2S Digital + ADC Analog
 //  I2S:  INMP441 / SPH0645 / MSM261S  (max 2, stereo)
 //  ADC:  Any 2-pin electret mic        (max 4, GPIO 32-39)
 //  Mix modes: I2S_ONLY / ADC_ONLY / HYBRID / AUTO

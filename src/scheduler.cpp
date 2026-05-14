@@ -1,5 +1,5 @@
 // ============================================================
-//  scheduler.cpp  –  NTP + cron-style IR scheduler
+//  scheduler.cpp  -  NTP + cron-style IR scheduler
 // ============================================================
 #include "scheduler.h"
 #include "wifi_manager.h"

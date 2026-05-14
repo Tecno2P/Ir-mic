@@ -1,5 +1,5 @@
 // ============================================================
-//  subghz_module.cpp  –  CC1101 Sub-1GHz Real Implementation
+//  subghz_module.cpp  -  CC1101 Sub-1GHz Real Implementation
 //  Direct SPI register access - no external CC1101 library needed
 // ============================================================
 #include "subghz_module.h"
@@ -148,7 +148,7 @@ void SubGhzModule::reinit(const SubGhzGpioConfig& cfg) {
 
 // ─────────────────────────────────────────────────────────────
 void SubGhzModule::_setFrequency(float mhz) {
-    // CC1101 supported range: 300–928 MHz. Outside this range the chip
+    // CC1101 supported range: 300-928 MHz. Outside this range the chip
     // enters undefined behavior and could be damaged.
     if (mhz < 300.0f || mhz > 928.0f) {
         Serial.printf(SUBGHZ_TAG " ERROR: freq %.2f MHz out of range (300-928 MHz)\n", mhz);

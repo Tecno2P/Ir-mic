@@ -1,9 +1,9 @@
 #pragma once
 // ============================================================
-//  auth_manager.h  –  Batch 3: Web Panel Authentication
+//  auth_manager.h  -  Batch 3: Web Panel Authentication
 //
 //  Session-token based auth:
-//    POST /api/v1/auth/login  → returns token
+//    POST /api/v1/auth/login  -> returns token
 //    All protected routes need: Authorization: Bearer <token>
 //
 //  Config: /auth_config.json

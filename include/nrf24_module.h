@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  nrf24_module.h  –  NRF24L01 2.4GHz - Real HW Implementation
+//  nrf24_module.h  -  NRF24L01 2.4GHz - Real HW Implementation
 // ============================================================
 #include <Arduino.h>
 #include <ArduinoJson.h>

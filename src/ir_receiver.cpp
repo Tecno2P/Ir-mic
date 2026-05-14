@@ -1,5 +1,5 @@
 // ============================================================
-//  ir_receiver.cpp  –  Dynamic-pin IR receive
+//  ir_receiver.cpp  -  Dynamic-pin IR receive
 //  v2.2.0: All decode_type_t values from IRremoteESP8266 v2.8.6
 // ============================================================
 #include "ir_receiver.h"
@@ -28,7 +28,7 @@ bool IRReceiver::changePin(uint8_t newPin) {
                       newPin, pinStatusMsg(st));
         return false;
     }
-    Serial.printf(DEBUG_TAG " IR Receiver pin: GPIO%d → GPIO%d\n", _pin, newPin);
+    Serial.printf(DEBUG_TAG " IR Receiver pin: GPIO%d -> GPIO%d\n", _pin, newPin);
     destroyRecv();
     createRecv(newPin);
     return true;
@@ -80,7 +80,7 @@ IRButton IRReceiver::decodeToButton(const decode_results& r) const {
     btn.repeats = IR_SEND_REPEATS;      // will be overridden below per-protocol
     btn.code    = r.value;
 
-    // ── Simple protocols (≤64-bit, decoded to code) ──────────
+    // ── Simple protocols (<=64-bit, decoded to code) ──────────
     switch (r.decode_type) {
         case decode_type_t::NEC:
         case decode_type_t::NEC_LIKE:     btn.protocol = IRProtocol::NEC_LIKE;

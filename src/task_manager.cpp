@@ -27,7 +27,7 @@ void TaskManager::begin() {
         1   // Core 1 - SPI bus access alongside loop()
     );
 
-    Serial.println("[TASK] hw_poll task → Core 1");
+    Serial.println("[TASK] hw_poll task -> Core 1");
 }
 
 // ── _hwPollTask ───────────────────────────────────────────────

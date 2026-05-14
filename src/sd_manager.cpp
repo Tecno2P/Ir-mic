@@ -1,5 +1,5 @@
 // ============================================================
-//  sd_manager.cpp  –  Optional SD card subsystem
+//  sd_manager.cpp  -  Optional SD card subsystem
 //  v1.0.0  |  Graceful fallback when SD absent
 // ============================================================
 #include "sd_manager.h"
@@ -196,7 +196,7 @@ void SdManager::_probeSd() {
 
         bool ok = _mount();
         if (!ok) {
-            // Exponential back-off: 5s → 10s → 20s → … → 60s max
+            // Exponential back-off: 5s -> 10s -> 20s -> … -> 60s max
             _remountIntervalMs = min(_remountIntervalMs * 2, SD_REMOUNT_MAX_MS);
             Serial.printf(DEBUG_TAG " [SD] Not present. Next retry in %lus.\n",
                           _remountIntervalMs / 1000UL);
@@ -304,7 +304,7 @@ void SdManager::_flushLogRing() {
         File f = SD.open(SD_LOG_FILE, FILE_READ);
         if (f && f.size() >= SD_LOG_MAX_BYTES) {
             f.close();
-            // Rename current → activity.log.1 (simple rotation)
+            // Rename current -> activity.log.1 (simple rotation)
             if (SD.exists("/logs/activity.log.1"))
                 SD.remove("/logs/activity.log.1");
             SD.rename(SD_LOG_FILE, "/logs/activity.log.1");
@@ -410,7 +410,7 @@ bool SdManager::deleteFile(const String& path) {
 bool SdManager::renameFile(const String& from, const String& to) {
     if (!_mounted || !_safePath(from) || !_safePath(to)) return false;
     bool ok = SD.rename(from, to);
-    if (ok) log(String("Renamed: ") + from + " → " + to);
+    if (ok) log(String("Renamed: ") + from + " -> " + to);
     return ok;
 }
 
@@ -460,7 +460,7 @@ bool SdManager::_copyFile(const String& src, const String& dst,
         total += n;
     }
     srcFile.close(); dstFile.close();
-    Serial.printf(DEBUG_TAG " [SD] Copied %s → %s (%u bytes)\n",
+    Serial.printf(DEBUG_TAG " [SD] Copied %s -> %s (%u bytes)\n",
                   src.c_str(), dst.c_str(), (unsigned)total);
     return true;
 }
@@ -725,7 +725,7 @@ bool SdManager::copyFileSd(const String& src, const String& dst) {
         if (existing) existing.close();
     }
     bool ok = _copyFile(src, dst, true, true);
-    if (ok) log(String("Copied: ") + src + " → " + dst);
+    if (ok) log(String("Copied: ") + src + " -> " + dst);
     return ok;
 }
 
@@ -738,7 +738,7 @@ bool SdManager::moveFile(const String& src, const String& dst) {
     if (src == dst) return false;
     // Try atomic rename first (faster, no data duplication)
     if (SD.rename(src, dst)) {
-        log(String("Moved (rename): ") + src + " → " + dst);
+        log(String("Moved (rename): ") + src + " -> " + dst);
         return true;
     }
     // Fall back to copy + delete
@@ -748,7 +748,7 @@ bool SdManager::moveFile(const String& src, const String& dst) {
         SD.remove(dst);
         return false;
     }
-    log(String("Moved (copy+del): ") + src + " → " + dst);
+    log(String("Moved (copy+del): ") + src + " -> " + dst);
     return true;
 }
 

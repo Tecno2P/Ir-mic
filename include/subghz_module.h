@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  subghz_module.h  –  CC1101 Sub-1GHz Real Implementation
+//  subghz_module.h  -  CC1101 Sub-1GHz Real Implementation
 // ============================================================
 #include <Arduino.h>
 #include <ArduinoJson.h>

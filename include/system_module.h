@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  system_module.h  –  System Module
+//  system_module.h  -  System Module
 //  LED (FastLED) + GhostLink + Schedule Tasks
 // ============================================================
 #include <Arduino.h>

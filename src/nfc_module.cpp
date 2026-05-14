@@ -1,5 +1,5 @@
 // ============================================================
-//  nfc_module.cpp  –  PN532 NFC Real Hardware (Adafruit lib)
+//  nfc_module.cpp  -  PN532 NFC Real Hardware (Adafruit lib)
 // ============================================================
 #include "nfc_module.h"
 #include <Wire.h>
@@ -145,7 +145,7 @@ void NfcModule::loop() {
                 line += "\n";
                 _dictPending += line;
                 _dictFoundCount++;
-                // Key found for this sector+type → move to next sector or KeyB phase
+                // Key found for this sector+type -> move to next sector or KeyB phase
                 if (_dictKeyType == 0 && _dictDoKeyB) {
                     // Try KeyB for same sector next
                     _dictKeyType = 1;
@@ -227,7 +227,7 @@ void NfcModule::_pollForTag() {
 
     // ── Auto-trigger rule engine + audit on every tag scan ───
     // Previously, NFC triggers only fired if /api/nfc/read was polled.
-    // Now: tag detected in hw_poll task → immediately fire rules and
+    // Now: tag detected in hw_poll task -> immediately fire rules and
     // broadcast to WebSocket, regardless of HTTP polling.
     //
     // Look up saved tag name for the rule trigger param.

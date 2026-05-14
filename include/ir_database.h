@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  ir_database.h  –  CRUD storage for IRButton objects
+//  ir_database.h  -  CRUD storage for IRButton objects
 //                    backed by a LittleFS JSON file.
 //
 //  Thread-safety note: All methods must be called from the
@@ -139,8 +139,8 @@ private:
     // findById() was O(N) linear scan through _buttons vector.
     // With 200 buttons at 20 Hz IR receive rate = 4000 scans/sec.
     // unordered_map gives O(1) average lookup at cost of ~8 bytes/entry overhead.
-    mutable std::unordered_map<uint32_t, size_t> _idIndex;    // id → _buttons index
-    mutable std::unordered_map<std::string, size_t> _nameIndex; // name → _buttons index
+    mutable std::unordered_map<uint32_t, size_t> _idIndex;    // id -> _buttons index
+    mutable std::unordered_map<std::string, size_t> _nameIndex; // name -> _buttons index
     void _rebuildIndex();   // call after any mutation to _buttons
     // FIX: replace portMUX_TYPE spinlock with FreeRTOS mutex.
     // exportJson() and compactJson() called `snapshot = _buttons` (a full vector

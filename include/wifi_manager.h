@@ -3,9 +3,9 @@
 //  wifi_manager.h  v2.0.6
 //
 //  WiFi behavior:
-//    Startup       → AP ON  (192.168.4.1)
-//    STA connects  → 7s delay → AP OFF
-//    STA drops     → AP ON  (192.168.4.1)
+//    Startup       -> AP ON  (192.168.4.1)
+//    STA connects  -> 7s delay -> AP OFF
+//    STA drops     -> AP ON  (192.168.4.1)
 // ============================================================
 #include <Arduino.h>
 #include <WiFi.h>

@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  log_rotation.h  –  Batch 4: Auto Log Rotation + CSV Export
+//  log_rotation.h  -  Batch 4: Auto Log Rotation + CSV Export
 //
 //  Features:
 //    - Audit log rotate karo jab AUDIT_MAX_ENTRIES se zyada ho

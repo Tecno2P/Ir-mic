@@ -1,5 +1,5 @@
 // ============================================================
-//  web_server_batch3.cpp  –  Batch 3
+//  web_server_batch3.cpp  -  Batch 3
 //  1. Auth Routes (/api/v1/auth/*)
 //  2. Captive Portal (DNS + OS detection routes)
 //  3. OTA Improvements (version check)

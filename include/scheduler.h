@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  scheduler.h  –  Cron-style scheduled IR transmission
+//  scheduler.h  -  Cron-style scheduled IR transmission
 //
 //  v2.0.0:
 //    + Up to MAX_SCHEDULES entries

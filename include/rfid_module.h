@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  rfid_module.h  –  125kHz RFID Real Implementation
+//  rfid_module.h  -  125kHz RFID Real Implementation
 //  Manchester decode, EM4100, Wiegand 26/34-bit
 // ============================================================
 #include <Arduino.h>

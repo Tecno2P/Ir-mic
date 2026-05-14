@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  macro_manager.h  –  Internal LittleFS macro subsystem
+//  macro_manager.h  -  Internal LittleFS macro subsystem
 //
 //  v2.2.0 (Upgrade 4):
 //    Stores multi-step IR macros directly in LittleFS under

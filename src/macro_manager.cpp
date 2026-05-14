@@ -1,5 +1,5 @@
 // ============================================================
-//  macro_manager.cpp  –  Internal LittleFS macro subsystem
+//  macro_manager.cpp  -  Internal LittleFS macro subsystem
 //  v2.2.0
 // ============================================================
 #include "macro_manager.h"

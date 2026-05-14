@@ -1,5 +1,5 @@
 // ============================================================
-//  web_server_modules.cpp  –  API routes for Tasks 7-11
+//  web_server_modules.cpp  -  API routes for Tasks 7-11
 //  NFC, RFID, Sub-GHz, NRF24, System modules
 // ============================================================
 #include "web_server.h"
@@ -1031,7 +1031,7 @@ void WebUI::setupModuleToggleRoutes() {
                 else if (m == "rfid")   rfidModule.setEnabled(a->en);
                 else if (m == "nrf24")  nrf24Module.setEnabled(a->en);
                 else if (m == "subghz") subghzModule.setEnabled(a->en);
-                Serial.printf("[MOD] %s → %s\n", a->mod, a->en ? "ON" : "OFF");
+                Serial.printf("[MOD] %s -> %s\n", a->mod, a->en ? "ON" : "OFF");
                 delete a;
                 vTaskDelete(NULL);
             }, "mod_toggle", 4096, args, 1, nullptr);

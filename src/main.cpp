@@ -1,5 +1,5 @@
 // ============================================================
-//  main.cpp  –  IR Remote Web GUI  v5.1.0  |  ESP32-WROOM-32
+//  main.cpp  -  IR Remote Web GUI  v5.1.0  |  ESP32-WROOM-32
 //
 //  v5.1.0 build:
 //    FIX C-01: RFID writeCardAsync() - non-blocking write via dedicated task
@@ -367,8 +367,8 @@ static void printBanner() {
     Serial.println(F("\n"
         "╔══════════════════════════════════════════════╗\n"
         "║   IR Remote Web GUI                          ║\n"
-        "║   ESP32-WROOM-32  ·  Full Feature Build      ║\n"
-        "║   NFC · RFID · SubGHz · NRF24 · System       ║\n"
+        "║   ESP32-WROOM-32  .  Full Feature Build      ║\n"
+        "║   NFC . RFID . SubGHz . NRF24 . System       ║\n"
         "╚══════════════════════════════════════════════╝"));
     Serial.printf("Version: %s\n", FIRMWARE_VERSION);
     Serial.printf("Chip: %s rev%d %uMHz  Flash:%uMB  Heap:%u\n",

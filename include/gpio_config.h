@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  gpio_config.h  –  ESP32-WROOM-32 GPIO safety validation
+//  gpio_config.h  -  ESP32-WROOM-32 GPIO safety validation
 //
 //  Provides:
 //    • Compile-time forbidden/input-only pin lists
@@ -41,9 +41,9 @@
 // prevents the chip from booting.
 //
 // NOTE: GPIO12 is also forbidden (flash voltage select - must be LOW at boot).
-//   NRF24 and SubGHz MISO moved from GPIO12 → GPIO26 (safe, mutually exclusive with IR TX-1).
-//   LED DATA moved from GPIO2 → GPIO13 (safe, not boot-critical).
-//   NFC IRQ/RST/SPI-SS moved from GPIO4/33/5 → GPIO13 (safe, never active simultaneously).
+//   NRF24 and SubGHz MISO moved from GPIO12 -> GPIO26 (safe, mutually exclusive with IR TX-1).
+//   LED DATA moved from GPIO2 -> GPIO13 (safe, not boot-critical).
+//   NFC IRQ/RST/SPI-SS moved from GPIO4/33/5 -> GPIO13 (safe, never active simultaneously).
 //
 // constexpr + inline: single definition shared across all TUs (C++17).
 // Avoids the flash/RAM waste of per-TU copies that `static const` would create.

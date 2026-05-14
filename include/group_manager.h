@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  group_manager.h  –  Named button groups / remote presets
+//  group_manager.h  -  Named button groups / remote presets
 //
 //  Supports up to MAX_GROUPS groups.
 //  Each group has: id, name, icon, order index.

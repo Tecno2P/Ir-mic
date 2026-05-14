@@ -1,5 +1,5 @@
 // ============================================================
-//  auth_manager.cpp  –  Batch 3: Web Panel Authentication
+//  auth_manager.cpp  -  Batch 3: Web Panel Authentication
 // ============================================================
 #include "auth_manager.h"
 #include "audit_manager.h"

@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  ir_button.h  –  Data model for a saved IR button
+//  ir_button.h  -  Data model for a saved IR button
 //
 //  v2.0.0: groupId, repeatCount, repeatDelay
 //  v2.2.0: icon, color fields + ALL protocols from
@@ -8,7 +8,7 @@
 //
 //  PROTOCOL STRATEGY
 //  ─────────────────
-//  • Simple (≤64-bit) protocols:  decoded to code + bits,
+//  • Simple (<=64-bit) protocols:  decoded to code + bits,
 //    retransmitted with the matching IRsend::sendXxx() call.
 //  • Complex AC (state[]) protocols: captured as RAW timings,
 //    stored in rawData[], retransmitted via sendRaw().
@@ -158,7 +158,7 @@ enum class IRProtocol : uint8_t {
     TOTO             = 127,   // Toto toilet
 };
 
-// ── Simple (≤64-bit) protocols - send via code ───────────────
+// ── Simple (<=64-bit) protocols - send via code ───────────────
 // Complex AC protocols fall through to sendRaw() automatically.
 inline bool isSimpleProtocol(IRProtocol p) {
     switch (p) {
@@ -547,8 +547,8 @@ struct IRButton {
     uint32_t  groupId;
     uint8_t   repeatCount;
     uint16_t  repeatDelay;
-    String    icon;       // emoji icon (≤32 bytes, supports 4-8 emoji UTF-8)
-    String    color;      // hex color (≤9 chars, e.g. "#6c63ff")
+    String    icon;       // emoji icon (<=32 bytes, supports 4-8 emoji UTF-8)
+    String    color;      // hex color (<=9 chars, e.g. "#6c63ff")
     std::vector<uint16_t> rawData;
 
     IRButton()
@@ -611,9 +611,9 @@ struct IRButton {
 
         // ── Protocol-aware carrier frequency correction ───────────────
         // Auto-heals legacy DB entries with wrong/zero/generic carrier.
-        //   SONY      → 40 kHz  (spec requirement)
-        //   RC5 / RC6 → 36 kHz  (Philips spec requirement)
-        //   All others → 38 kHz (most common standard)
+        //   SONY      -> 40 kHz  (spec requirement)
+        //   RC5 / RC6 -> 36 kHz  (Philips spec requirement)
+        //   All others -> 38 kHz (most common standard)
         switch (protocol) {
             case IRProtocol::SONY:
                 freqKHz = 40; break;

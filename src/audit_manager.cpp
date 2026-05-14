@@ -1,5 +1,5 @@
 // ============================================================
-//  audit_manager.cpp  –  Audit Trail / Event Log System
+//  audit_manager.cpp  -  Audit Trail / Event Log System
 //  Batch 1 - Logs every significant event with timestamp
 // ============================================================
 #include "audit_manager.h"

@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  config.h  –  Compile-time tunables for IR Remote Web GUI
+//  config.h  -  Compile-time tunables for IR Remote Web GUI
 //
 //  v2.0.0 - Added:
 //    + Button Groups / Remote Presets
@@ -30,8 +30,8 @@
 // ── Wi-Fi Station mode (optional) ───────────────────────────
 #define DEFAULT_STA_SSID      ""
 #define DEFAULT_STA_PASS      ""
-#define STA_CONNECT_TIMEOUT   20000   // ms – increased for reliability
-#define STA_RECONNECT_INTERVAL 30000  // ms – retry if disconnected
+#define STA_CONNECT_TIMEOUT   20000   // ms - increased for reliability
+#define STA_RECONNECT_INTERVAL 30000  // ms - retry if disconnected
 #define WIFI_SCAN_MAX_RESULTS 20      // max SSIDs returned
 
 // ── Hardware pins ────────────────────────────────────────────
@@ -107,7 +107,7 @@
 // Larger files are rejected with HTTP 413 before parsing.
 #define DB_RESTORE_MAX_BYTES  65536UL
 
-// ── IR Storage improvements (Fix 1–4) ───────────────────────
+// ── IR Storage improvements (Fix 1-4) ───────────────────────
 //
 // Fix 1: Auto-save received IR signals
 //   When enabled, every decoded IR signal is checked against
