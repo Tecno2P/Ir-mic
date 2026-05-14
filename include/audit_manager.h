@@ -11,9 +11,9 @@
 //  Max entries: AUDIT_MAX_ENTRIES (circular buffer)
 //
 //  API Endpoints (registered in web_server.cpp):
-//    GET  /api/v1/audit          — list entries (filter by type/limit)
-//    POST /api/v1/audit/clear    — clear all logs
-//    GET  /api/v1/audit/export   — download as JSON
+//    GET  /api/v1/audit          - list entries (filter by type/limit)
+//    POST /api/v1/audit/clear    - clear all logs
+//    GET  /api/v1/audit/export   - download as JSON
 // ============================================================
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -21,7 +21,7 @@
 #include <vector>
 
 #define AUDIT_LOG_FILE      "/audit_log.json"
-#define AUDIT_MAX_ENTRIES   200     // circular — oldest dropped when full
+#define AUDIT_MAX_ENTRIES   200     // circular - oldest dropped when full
 #define AUDIT_MAX_DETAIL    128     // max chars in detail string
 
 // ── Event source modules ──────────────────────────────────────

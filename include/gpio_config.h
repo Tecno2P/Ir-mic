@@ -10,13 +10,13 @@
 //  Maximum supported configuration:
 //    Emitters (TX): 4 independent IRsend instances, any safe GPIO
 //    Receivers (RX): 1 active IRrecv instance, any safe GPIO
-//      (IRremoteESP8266 hw_timer ISR is global — only one RX at a time)
+//      (IRremoteESP8266 hw_timer ISR is global - only one RX at a time)
 // ============================================================
 #include <Arduino.h>
 
 // ── Hardware limits ──────────────────────────────────────────
 #define IR_MAX_EMITTERS   8    // max simultaneous IRsend instances
-                               // ESP32 has 8 RMT TX channels — we use all 8.
+                               // ESP32 has 8 RMT TX channels - we use all 8.
                                // Each emitter gets its own RMT channel, GPIO,
                                // and IRsend instance.  All fire in parallel
                                // inside transmit() / transmitRaw().
@@ -37,10 +37,10 @@
 // ── Pin classification ───────────────────────────────────────
 
 // Forbidden: internal flash SPI, UART0, and boot-critical strapping pins.
-// These MUST never be used for IR — touching them causes crashes or
+// These MUST never be used for IR - touching them causes crashes or
 // prevents the chip from booting.
 //
-// NOTE: GPIO12 is also forbidden (flash voltage select — must be LOW at boot).
+// NOTE: GPIO12 is also forbidden (flash voltage select - must be LOW at boot).
 //   NRF24 and SubGHz MISO moved from GPIO12 → GPIO26 (safe, mutually exclusive with IR TX-1).
 //   LED DATA moved from GPIO2 → GPIO13 (safe, not boot-critical).
 //   NFC IRQ/RST/SPI-SS moved from GPIO4/33/5 → GPIO13 (safe, never active simultaneously).
@@ -56,13 +56,13 @@ inline constexpr uint8_t FORBIDDEN_PINS[] = {
     9,   // SPI Flash D2
     10,  // SPI Flash D3
     11,  // SPI Flash CMD
-    // Boot-strapping pins — changing them corrupts boot mode or
+    // Boot-strapping pins - changing them corrupts boot mode or
     // flash voltage selection.  GPIO0 can be used in theory but
     // the BOOT button makes it unreliable.
     0,   // BOOT button / download mode
     2,   // Boot mode (must be LOW at boot)
     5,   // SPI CS0 (must be HIGH at boot)
-    12,  // Flash voltage (must be LOW at boot — 3.3V select)
+    12,  // Flash voltage (must be LOW at boot - 3.3V select)
     15,  // JTAG / debug output (HIGH at boot)
 };
 inline constexpr uint8_t FORBIDDEN_COUNT = sizeof(FORBIDDEN_PINS) / sizeof(FORBIDDEN_PINS[0]);
@@ -97,7 +97,7 @@ enum class PinStatus : uint8_t {
     ERR_FORBIDDEN= 2,   // Pin is forbidden (flash/boot-critical)
     ERR_INVALID  = 3,   // Pin number not on this module
     ERR_CONFLICT = 4,   // Pin already used by another IR instance
-    ERR_INPUT_ONLY = 5, // Pin is input-only — cannot be used for TX
+    ERR_INPUT_ONLY = 5, // Pin is input-only - cannot be used for TX
 };
 
 // ── Validate a pin for TX use ────────────────────────────────
@@ -115,7 +115,7 @@ inline PinStatus validateTxPin(uint8_t pin,
     for (uint8_t i = 0; i < FORBIDDEN_COUNT; ++i)
         if (FORBIDDEN_PINS[i] == pin) return PinStatus::ERR_FORBIDDEN;
 
-    // Check input-only — these cannot drive TX (no output driver)
+    // Check input-only - these cannot drive TX (no output driver)
     for (uint8_t i = 0; i < INPUT_ONLY_COUNT; ++i)
         if (INPUT_ONLY_PINS[i] == pin) return PinStatus::ERR_INPUT_ONLY;
 
@@ -162,7 +162,7 @@ inline const char* pinStatusMsg(PinStatus s) {
         case PinStatus::OK:            return "OK";
         case PinStatus::OK_RX_ONLY:    return "OK (input-only, RX use only)";
         case PinStatus::ERR_FORBIDDEN: return "Forbidden (boot/flash critical pin)";
-        case PinStatus::ERR_INPUT_ONLY:return "Input-only GPIO — cannot be used for TX";
+        case PinStatus::ERR_INPUT_ONLY:return "Input-only GPIO - cannot be used for TX";
         case PinStatus::ERR_INVALID:   return "Invalid (not on ESP32-WROOM-32)";
         case PinStatus::ERR_CONFLICT:  return "Conflict (already used by another IR instance)";
         default:                       return "Unknown";

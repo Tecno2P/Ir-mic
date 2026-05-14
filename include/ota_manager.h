@@ -2,7 +2,7 @@
 // ============================================================
 //  ota_manager.h  –  OTA firmware + filesystem update v3.0
 //
-//  v3.0 — Permanent OTA storage-full fix:
+//  v3.0 - Permanent OTA storage-full fix:
 //    + Uses real IDF esp_ota_get_next_update_partition() to detect
 //      missing/corrupt OTA partition (was using getFreeSketchSpace
 //      which always returns partition SIZE not usable space)
@@ -22,7 +22,7 @@
 #include <functional>
 #include "config.h"
 
-// IDF OTA partition APIs — available in all espressif32 framework versions
+// IDF OTA partition APIs - available in all espressif32 framework versions
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
 
@@ -32,7 +32,7 @@
 #endif
 
 // Hard cap: reject firmware larger than this regardless of partition size.
-// Set to 1600 KB — 64 KB margin under 1664 KB partition for safety.
+// Set to 1600 KB - 64 KB margin under 1664 KB partition for safety.
 #ifndef OTA_MAX_FIRMWARE_BYTES
   #define OTA_MAX_FIRMWARE_BYTES  (1600UL * 1024UL)
 #endif
@@ -67,10 +67,10 @@ public:
     bool          restartPending() const { return _restartPending; }
     const String& lastError()      const { return _lastError; }
 
-    // Call from main loop() every iteration — aborts stale uploads
+    // Call from main loop() every iteration - aborts stale uploads
     void tickWatchdog();
 
-    // Clear error state without reboot — allows retrying after failure
+    // Clear error state without reboot - allows retrying after failure
     void clearError();
 
     // Real OTA partition free bytes via IDF API
@@ -98,7 +98,7 @@ private:
     void finishUpdate ();
     void abortUpdate  (const String& reason);
 
-    // Deep LittleFS cleanup — frees log archives, audit log, temp files
+    // Deep LittleFS cleanup - frees log archives, audit log, temp files
     void _cleanLittleFSBeforeOta();
 
     // Validate: partition exists, firmware fits, FS not critically full

@@ -1,7 +1,7 @@
 #pragma once
 // ============================================================
 //  web_server.h  –  IR Remote Web GUI  v5.0.0
-//  All batches combined — clean, no duplicates
+//  All batches combined - clean, no duplicates
 // ============================================================
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
@@ -24,11 +24,11 @@ public:
     void broadcastOtaResult  (bool success, const String& msg);
     void broadcastStatus     ();
     void broadcastBinary     (const uint8_t* data, size_t len);
-    // Raw JSON string pushed directly to WS queue — used by background tasks
+    // Raw JSON string pushed directly to WS queue - used by background tasks
     // (version check, OTA progress from task context) to push pre-built JSON.
     void broadcastRaw        (const String& json);
 
-    // ── Captive Portal (public — called from main.cpp) ────────
+    // ── Captive Portal (public - called from main.cpp) ────────
     void startCaptivePortal();
     void stopCaptivePortal ();
     void loopCaptivePortal ();
@@ -38,7 +38,7 @@ private:
     AsyncWebSocket _ws;
 
     // FIX: FreeRTOS mutex replaces portMUX spinlock.
-    // portENTER_CRITICAL disables interrupts on both cores — unsafe when
+    // portENTER_CRITICAL disables interrupts on both cores - unsafe when
     // std::queue::push() triggers a realloc() inside the critical section.
     // xSemaphoreCreateMutex() is safe: malloc never runs with IRQs disabled.
     SemaphoreHandle_t  _wsMutex = nullptr;

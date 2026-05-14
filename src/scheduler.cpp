@@ -102,7 +102,7 @@ void Scheduler::begin() {
 void Scheduler::loop() {
     unsigned long now = millis();
 
-    // Use wifiMgr.staConnected() — cached, no WiFi.status() mutex per tick
+    // Use wifiMgr.staConnected() - cached, no WiFi.status() mutex per tick
     bool connected = wifiMgr.staConnected();
 
     // Start NTP as soon as STA connects (if not already started)

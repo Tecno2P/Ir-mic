@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  nrf24_module.h  –  NRF24L01 2.4GHz — Real HW Implementation
+//  nrf24_module.h  –  NRF24L01 2.4GHz - Real HW Implementation
 // ============================================================
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -24,9 +24,9 @@ struct Nrf24GpioConfig {
     // HSPI bus by default to avoid conflict with SD card (VSPI: SCK=18,MOSI=23,MISO=19)
     uint8_t  sck     = 14;   // HSPI SCK  (was 18 = conflicts with SD)
     uint8_t  mosi    = 13;   // HSPI MOSI (was 23 = conflicts with SD)
-    uint8_t  miso    = 26;   // HSPI MISO (GPIO12 forbidden at boot — use 26, shares IR TX-1 mutually exclusive)
+    uint8_t  miso    = 26;   // HSPI MISO (GPIO12 forbidden at boot - use 26, shares IR TX-1 mutually exclusive)
     uint8_t  irq     = 0;     // 0 = disabled
-    uint8_t  spiBus  = 1;     // 1=HSPI (SD uses VSPI — do NOT use 0 here)
+    uint8_t  spiBus  = 1;     // 1=HSPI (SD uses VSPI - do NOT use 0 here)
     Nrf24DataRate dataRate = Nrf24DataRate::RATE_1M;
     Nrf24PaLevel  paLevel  = Nrf24PaLevel::PA_HIGH;
 };

@@ -20,7 +20,7 @@ enum class LedType { WS2812B, WS2811, SK6812 };
 struct LedConfig {
     LedType type     = LedType::WS2812B;
     LedMode mode     = LedMode::OFF;
-    uint8_t dataPin  = 13;  // GPIO2 forbidden (boot strapping) — moved to GPIO13
+    uint8_t dataPin  = 13;  // GPIO2 forbidden (boot strapping) - moved to GPIO13
     uint8_t numLeds  = 8;
     uint8_t r        = 255;
     uint8_t g        = 0;

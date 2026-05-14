@@ -9,17 +9,17 @@
 //  In this firmware all API handlers run in the async task
 //  but immediately call synchronous methods; because ESP32
 //  async server handlers run from a dedicated TCP task we use
-//  a FreeRTOS mutex (xSemaphoreCreateMutex) to guard the vector — safe for heap allocs.
+//  a FreeRTOS mutex (xSemaphoreCreateMutex) to guard the vector - safe for heap allocs.
 //
 //  Storage improvements (v2.1.0):
-//    Fix 1 — Auto-save: received IR signals optionally saved
+//    Fix 1 - Auto-save: received IR signals optionally saved
 //             automatically, with duplicate detection.
-//    Fix 2 — Lazy save: dirty flag + 5 s timer batches flash
+//    Fix 2 - Lazy save: dirty flag + 5 s timer batches flash
 //             writes; call loop() from main loop().
-//    Fix 3 — RAW guard: MAX_RAW_BUTTONS cap prevents heap
+//    Fix 3 - RAW guard: MAX_RAW_BUTTONS cap prevents heap
 //             exhaustion when many RAW buttons are stored.
-//    Fix 4 — Streaming save: JSON written directly to flash
-//             one button at a time — no full-DB RAM copy.
+//    Fix 4 - Streaming save: JSON written directly to flash
+//             one button at a time - no full-DB RAM copy.
 // ============================================================
 #include <Arduino.h>
 #include <vector>
@@ -68,12 +68,12 @@ public:
     bool remove(uint32_t id);
 
     // Lookup by ID; returns default IRButton (id==0) if not found.
-    // Returns by value with the spinlock held — safe across tasks.
+    // Returns by value with the spinlock held - safe across tasks.
 #include <unordered_map>   // O(1) index for findById / findByName
 
     IRButton findById(uint32_t id) const;
 
-    // FIX: O(1) name lookup via hash map — was O(N) linear scan.
+    // FIX: O(1) name lookup via hash map - was O(N) linear scan.
     // Returns default IRButton (id==0) if not found.
     IRButton findByName(const String& name) const;
 
@@ -91,7 +91,7 @@ public:
 
     // Export entire DB as pretty-printed JSON string.
     String exportJson() const;    // pretty-printed (for file export/download)
-    String compactJson() const;   // compact (for API responses — saves bandwidth)
+    String compactJson() const;   // compact (for API responses - saves bandwidth)
 
     // Replace entire DB from a JSON string.
     // Returns false on parse error; leaves DB unchanged on failure.
@@ -116,9 +116,9 @@ public:
     RestoreResult validateRestoreJson(const String& json) const;
 
     // Full restore pipeline:
-    //   1. validateRestoreJson()   — reject on bad JSON / no valid buttons
-    //   2. backup()                — snapshot current DB to backup file
-    //   3. importJson()            — atomic swap + immediate save
+    //   1. validateRestoreJson()   - reject on bad JSON / no valid buttons
+    //   2. backup()                - snapshot current DB to backup file
+    //   3. importJson()            - atomic swap + immediate save
     // Returns a RestoreResult; on failure the live DB is untouched.
     RestoreResult restore(const String& json);
 
@@ -135,7 +135,7 @@ private:
     std::vector<IRButton> _buttons;
     uint32_t              _nextId;
 
-    // FIX: O(1) lookup indexes — rebuilt after every add/update/remove.
+    // FIX: O(1) lookup indexes - rebuilt after every add/update/remove.
     // findById() was O(N) linear scan through _buttons vector.
     // With 200 buttons at 20 Hz IR receive rate = 4000 scans/sec.
     // unordered_map gives O(1) average lookup at cost of ~8 bytes/entry overhead.
@@ -144,10 +144,10 @@ private:
     void _rebuildIndex();   // call after any mutation to _buttons
     // FIX: replace portMUX_TYPE spinlock with FreeRTOS mutex.
     // exportJson() and compactJson() called `snapshot = _buttons` (a full vector
-    // copy with String/rawData heap allocs) inside portENTER_CRITICAL — which
+    // copy with String/rawData heap allocs) inside portENTER_CRITICAL - which
     // disables interrupts on both cores. malloc() inside that window deadlocks
     // against ESP-IDF's heap_caps allocator (which uses its own spinlock).
-    // xSemaphoreCreateMutex() never disables interrupts — heap is always safe.
+    // xSemaphoreCreateMutex() never disables interrupts - heap is always safe.
     SemaphoreHandle_t     _mux;
 
     // Fix 2: lazy-save state

@@ -64,7 +64,7 @@ private:
     bool          _staInitiated;
     bool          _apActive;
     bool          _wasConnected;
-    bool          _staConnected;  // cached — updated by event callbacks, avoids WiFi.status() per tick
+    bool          _staConnected;  // cached - updated by event callbacks, avoids WiFi.status() per tick
     unsigned long _apStopAt;      // millis() when to stop AP (0=not scheduled)
 
     void _startAP();

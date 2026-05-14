@@ -10,11 +10,11 @@
 //    - SD daily log file rotation
 //
 //  API Endpoints:
-//    GET  /api/v1/logs/list          — list archived logs
-//    GET  /api/v1/logs/export.csv    — download audit as CSV
-//    POST /api/v1/logs/rotate        — force rotate now
-//    POST /api/v1/logs/config        — set retention days
-//    GET  /api/v1/logs/config        — get config
+//    GET  /api/v1/logs/list          - list archived logs
+//    GET  /api/v1/logs/export.csv    - download audit as CSV
+//    POST /api/v1/logs/rotate        - force rotate now
+//    POST /api/v1/logs/config        - set retention days
+//    GET  /api/v1/logs/config        - get config
 // ============================================================
 #include <Arduino.h>
 #include <LittleFS.h>
@@ -34,7 +34,7 @@ public:
     void begin();
     void loop();
 
-    // Force rotate now — archive current audit log
+    // Force rotate now - archive current audit log
     bool rotate();
 
     // Delete archived logs older than _retentionDays

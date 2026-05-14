@@ -46,7 +46,7 @@ OtaManager::OtaManager()
 {}
 
 // ─────────────────────────────────────────────────────────────
-//  freeOtaBytes — REAL value via IDF partition API
+//  freeOtaBytes - REAL value via IDF partition API
 //  Returns the size of the next OTA target partition.
 //  Returns 0 if no valid OTA partition exists at all.
 // ─────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ size_t OtaManager::freeOtaBytes() const {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  otaPartitionSize — partition size from IDF (same as freeOtaBytes here)
+//  otaPartitionSize - partition size from IDF (same as freeOtaBytes here)
 // ─────────────────────────────────────────────────────────────
 size_t OtaManager::otaPartitionSize() const {
     const esp_partition_t* part = esp_ota_get_next_update_partition(NULL);
@@ -66,7 +66,7 @@ size_t OtaManager::otaPartitionSize() const {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  fsFreeBytes — real LittleFS free space
+//  fsFreeBytes - real LittleFS free space
 // ─────────────────────────────────────────────────────────────
 size_t OtaManager::fsFreeBytes() const {
     if (LittleFS.totalBytes() == 0) return 0;
@@ -85,8 +85,8 @@ bool OtaManager::_validateBeforeUpdate(size_t declaredSize, const String& target
     if (target == "filesystem") {
         // Filesystem OTA writes to the spiffs partition, not the OTA app slots.
         // Only check LittleFS is not critically full (it will be unmounted anyway).
-        // No flash-space check needed — Update library handles spiffs partition directly.
-        Serial.printf(DEBUG_TAG " OTA: filesystem update — spiffs partition at 0x%06X\n",
+        // No flash-space check needed - Update library handles spiffs partition directly.
+        Serial.printf(DEBUG_TAG " OTA: filesystem update - spiffs partition at 0x%06X\n",
                       0x350000);
         return true;
     }
@@ -129,11 +129,11 @@ bool OtaManager::_validateBeforeUpdate(size_t declaredSize, const String& target
         return false;
     }
 
-    // ── CHECK 4: Partition state — ensure slot is writable ────
+    // ── CHECK 4: Partition state - ensure slot is writable ────
     esp_ota_img_states_t state = ESP_OTA_IMG_UNDEFINED;
     esp_err_t stErr = esp_ota_get_state_partition(nextPart, &state);
     if (stErr == ESP_OK) {
-        // ESP_OTA_IMG_INVALID means the slot was marked bad — still writable,
+        // ESP_OTA_IMG_INVALID means the slot was marked bad - still writable,
         // the new image overwrites it. Log it but don't abort.
         Serial.printf(DEBUG_TAG " OTA: target slot state=%d (%s)\n",
                       (int)state,
@@ -150,12 +150,12 @@ bool OtaManager::_validateBeforeUpdate(size_t declaredSize, const String& target
     // is totally full the device crashes on first config save after OTA.
     size_t fsFree = fsFreeBytes();
     if (fsFree < OTA_MIN_FS_FREE_BYTES) {
-        Serial.printf(DEBUG_TAG " OTA: WARNING — LittleFS only %u KB free (need %u KB). "
+        Serial.printf(DEBUG_TAG " OTA: WARNING - LittleFS only %u KB free (need %u KB). "
                       "Performing deep cleanup.\n",
                       (unsigned)(fsFree / 1024),
                       (unsigned)(OTA_MIN_FS_FREE_BYTES / 1024));
         // Cleanup runs below in beginUpdate(); just warn here.
-        // Do NOT abort — LittleFS space is not OTA flash space.
+        // Do NOT abort - LittleFS space is not OTA flash space.
     }
 
     Serial.printf(DEBUG_TAG " OTA: all checks passed. "
@@ -209,9 +209,9 @@ void OtaManager::_cleanLittleFSBeforeOta() {
     }
 
     // ── Remove ALL log archives (YYYY-MM-DD.json) ─────────────
-    // These are compressed daily logs — not needed for device operation.
+    // These are compressed daily logs - not needed for device operation.
     {
-        // Collect paths first — do not remove while iterating (UB on LittleFS)
+        // Collect paths first - do not remove while iterating (UB on LittleFS)
         std::vector<String> toRemove;
         File dir = LittleFS.open("/log_archive");
         if (dir && dir.isDirectory()) {
@@ -246,7 +246,7 @@ void OtaManager::_cleanLittleFSBeforeOta() {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  handleUploadChunk — called per-chunk by web server
+//  handleUploadChunk - called per-chunk by web server
 // ─────────────────────────────────────────────────────────────
 void OtaManager::handleUploadChunk(const String& target,
                                     uint8_t*      data,
@@ -257,12 +257,12 @@ void OtaManager::handleUploadChunk(const String& target,
 {
     if (index == 0) {
         if (_updating) {
-            Serial.println(DEBUG_TAG " OTA: new upload started — aborting stale session");
+            Serial.println(DEBUG_TAG " OTA: new upload started - aborting stale session");
             abortUpdate("Upload restarted (previous connection dropped)");
         }
         _declaredSize = total;
         beginUpdate(target, total);
-        if (!_updating) return;   // beginUpdate failed — error already set
+        if (!_updating) return;   // beginUpdate failed - error already set
         _lastChunkMs   = millis();
         _totalReceived = 0;
     }
@@ -271,36 +271,36 @@ void OtaManager::handleUploadChunk(const String& target,
 
     // Guard against non-contiguous chunks (browser retry / ghost connection)
     if (index != _totalReceived) {
-        Serial.printf(DEBUG_TAG " OTA: non-contiguous chunk (expected %u got %u) — aborting\n",
+        Serial.printf(DEBUG_TAG " OTA: non-contiguous chunk (expected %u got %u) - aborting\n",
                       (unsigned)_totalReceived, (unsigned)index);
-        abortUpdate("Upload interrupted — non-contiguous chunk. Please retry.");
+        abortUpdate("Upload interrupted - non-contiguous chunk. Please retry.");
         return;
     }
 
-    // Runtime size cap — guards against unknown Content-Length (chunked uploads)
+    // Runtime size cap - guards against unknown Content-Length (chunked uploads)
     // Even when declaredSize=0, we enforce the hard cap during streaming.
     if (_totalReceived + len > OTA_MAX_FIRMWARE_BYTES) {
         abortUpdate(
             String("Firmware too large mid-upload: already received ") +
-            ((_totalReceived + len) / 1024) + " KB — exceeds max " +
+            ((_totalReceived + len) / 1024) + " KB - exceeds max " +
             (OTA_MAX_FIRMWARE_BYTES / 1024) + " KB. Rebuild with -Os."
         );
         return;
     }
 
-    // Write chunk to flash — if write returns != len the partition is full
+    // Write chunk to flash - if write returns != len the partition is full
     if (Update.write(data, len) != len) {
         abortUpdate(
             String("Flash write failed after ") + (_totalReceived / 1024) + " KB. " +
             String(Update.errorString()) +
-            " — partition may be corrupt. Re-flash partitions.bin via USB."
+            " - partition may be corrupt. Re-flash partitions.bin via USB."
         );
         return;
     }
     _totalReceived += len;
     _lastChunkMs    = millis();
 
-    // Progress callback — throttled to integer-percent steps
+    // Progress callback - throttled to integer-percent steps
     if (_progressCb) {
         size_t written = Update.progress();
         size_t denom   = (_declaredSize > 0) ? _declaredSize : Update.size();
@@ -318,7 +318,7 @@ void OtaManager::handleUploadChunk(const String& target,
 }
 
 // ─────────────────────────────────────────────────────────────
-//  beginUpdate — runs all checks then starts the Update library
+//  beginUpdate - runs all checks then starts the Update library
 // ─────────────────────────────────────────────────────────────
 void OtaManager::beginUpdate(const String& target, size_t declaredSize) {
     _updating       = true;
@@ -370,7 +370,7 @@ void OtaManager::beginUpdate(const String& target, size_t declaredSize) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  finishUpdate — commit image, set restart pending
+//  finishUpdate - commit image, set restart pending
 // ─────────────────────────────────────────────────────────────
 void OtaManager::finishUpdate() {
     if (!Update.end(true)) {   // true = set boot partition to new image
@@ -387,17 +387,17 @@ void OtaManager::finishUpdate() {
         _progressCb(sz, sz);
     }
 
-    Serial.printf(DEBUG_TAG " OTA: image committed (%u bytes) — reboot pending\n",
+    Serial.printf(DEBUG_TAG " OTA: image committed (%u bytes) - reboot pending\n",
                   (unsigned)_totalReceived);
 
-    if (_endCb) _endCb(true, "OTA successful — rebooting in 1s");
+    if (_endCb) _endCb(true, "OTA successful - rebooting in 1s");
     // NOTE: ESP.restart() is NOT called here.
     // main.cpp loop() polls restartPending() and restarts after 1.2 s,
     // giving the HTTP response and WebSocket message time to transmit.
 }
 
 // ─────────────────────────────────────────────────────────────
-//  abortUpdate — clean up after any failure
+//  abortUpdate - clean up after any failure
 // ─────────────────────────────────────────────────────────────
 void OtaManager::abortUpdate(const String& reason) {
     Update.abort();
@@ -409,7 +409,7 @@ void OtaManager::abortUpdate(const String& reason) {
 
     // Re-mount LittleFS so config saves / logs work normally
     if (!LittleFS.begin(true)) {
-        Serial.println(DEBUG_TAG " WARNING: LittleFS re-mount after OTA abort failed — "
+        Serial.println(DEBUG_TAG " WARNING: LittleFS re-mount after OTA abort failed - "
                        "device may need reboot");
     }
 
@@ -417,19 +417,19 @@ void OtaManager::abortUpdate(const String& reason) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  tickWatchdog — abort stale uploads (call from main loop())
+//  tickWatchdog - abort stale uploads (call from main loop())
 // ─────────────────────────────────────────────────────────────
 void OtaManager::tickWatchdog() {
     if (!_updating) return;
     if ((millis() - _lastChunkMs) >= OTA_CHUNK_TIMEOUT_MS) {
-        Serial.printf(DEBUG_TAG " OTA: upload timed out (no data for %lu s) — aborting\n",
+        Serial.printf(DEBUG_TAG " OTA: upload timed out (no data for %lu s) - aborting\n",
                       OTA_CHUNK_TIMEOUT_MS / 1000UL);
-        abortUpdate("Upload timed out — connection dropped. Please retry.");
+        abortUpdate("Upload timed out - connection dropped. Please retry.");
     }
 }
 
 // ─────────────────────────────────────────────────────────────
-//  clearError — reset after failure so UI can retry without reboot
+//  clearError - reset after failure so UI can retry without reboot
 // ─────────────────────────────────────────────────────────────
 void OtaManager::clearError() {
     if (!_updating && !_restartPending) {
@@ -437,6 +437,6 @@ void OtaManager::clearError() {
         _lastPct       = 255;
         _declaredSize  = 0;
         _totalReceived = 0;
-        Serial.println(DEBUG_TAG " OTA: error cleared — ready for retry");
+        Serial.println(DEBUG_TAG " OTA: error cleared - ready for retry");
     }
 }

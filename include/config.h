@@ -2,7 +2,7 @@
 // ============================================================
 //  config.h  –  Compile-time tunables for IR Remote Web GUI
 //
-//  v2.0.0 — Added:
+//  v2.0.0 - Added:
 //    + Button Groups / Remote Presets
 //    + Scheduled IR Transmission (NTP + cron-style)
 //    + IR Repeat / Timing Controls
@@ -14,7 +14,7 @@
 
 // ── Firmware version ─────────────────────────────────────────
 // Defined via -DFIRMWARE_VERSION in platformio.ini build_flags
-// (do NOT redefine here — would cause "macro redefined" warning)
+// (do NOT redefine here - would cause "macro redefined" warning)
 #ifndef FIRMWARE_VERSION
   #define FIRMWARE_VERSION "5.0.0"
 #endif
@@ -60,15 +60,15 @@
 #define IR_DEFAULT_REPEAT_COUNT  1
 // IR_DEFAULT_REPEAT_DELAY: gap (ms) between repeat sends.
 // 110ms = standard NEC "keep-pressed" frame interval. Works for small/large devices.
-#define IR_DEFAULT_REPEAT_DELAY  110  // ms — matches NEC/Samsung hold-key timing
+#define IR_DEFAULT_REPEAT_DELAY  110  // ms - matches NEC/Samsung hold-key timing
 #define IR_MAX_REPEAT_COUNT      20
 #define IR_MAX_REPEAT_DELAY      2000 // ms
 
 // ── Pre-TX quiet time ─────────────────────────────────────────
 // How long to silence the IR bus before transmitting.
 // 20ms works for most; increase to 30ms for stubborn devices.
-#define IR_PRE_TX_QUIET_MS    20   // ms — pause receiver before TX burst
-// Post-TX settle time — extra ms after signal finishes before RX resumes.
+#define IR_PRE_TX_QUIET_MS    20   // ms - pause receiver before TX burst
+// Post-TX settle time - extra ms after signal finishes before RX resumes.
 #define IR_POST_TX_SETTLE_MS  30   // ms
 
 // ── Button Groups ────────────────────────────────────────────
@@ -115,7 +115,7 @@
 #define IR_AUTO_SAVE_DEFAULT  false        // off by default; user enables via API
 #define IR_AUTO_SAVE_FILE     "/ir_autosave.json"
 //
-// Fix 2: Lazy save — batch flash writes to reduce wear
+// Fix 2: Lazy save - batch flash writes to reduce wear
 //   Instead of writing to flash on every add/update/delete,
 //   a dirty flag is set and the DB is flushed after this many
 //   milliseconds of inactivity.
@@ -124,7 +124,7 @@
 // Fix 3: RAW button memory guard
 //   Each RAW button holds up to MAX_RAW_EDGES uint16_t values
 //   (512 x 2 = 1 KB).  Allowing all 128 buttons to be RAW
-//   would consume ~136 KB heap — unsafe on ESP32.
+//   would consume ~136 KB heap - unsafe on ESP32.
 #define MAX_RAW_BUTTONS       16           // max simultaneous RAW buttons in DB
 //
 // Fix 4: Streaming JSON save (see ir_database.cpp save())
@@ -138,7 +138,7 @@
 #define DEBUG_TAG             "[IR]"
 
 // ── SD Card (optional) ───────────────────────────────────────
-// VSPI bus — wiring: MOSI=23, MISO=19, SCK=18, CS=4
+// VSPI bus - wiring: MOSI=23, MISO=19, SCK=18, CS=4
 // All SD features are automatically disabled if card is absent.
 // Wrapped in #ifndef so -D flags in platformio.ini take precedence
 // without triggering "macro redefined" warnings.
@@ -158,7 +158,7 @@
   #define SD_SPI_FREQ        4000000UL   // 4 MHz initial; can increase to 20 MHz
 #endif
 
-// ── Internal Macros (LittleFS — no SD required) ── v2.2.0 ────
+// ── Internal Macros (LittleFS - no SD required) ── v2.2.0 ────
 // Up to MACRO_MAX_INTERNAL macros stored directly in LittleFS.
 // Each macro is a JSON file at /macros/<name>.json
 // Same format as SD macros so they are interchangeable.

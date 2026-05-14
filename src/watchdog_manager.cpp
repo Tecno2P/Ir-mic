@@ -33,7 +33,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-uint8_t temprature_sens_read();   // ROM symbol — typo is intentional, matches ROM export
+uint8_t temprature_sens_read();   // ROM symbol - typo is intentional, matches ROM export
 #ifdef __cplusplus
 }
 #endif
@@ -58,7 +58,7 @@ WatchdogManager::WatchdogManager()
 
 // ─────────────────────────────────────────────────────────────
 void WatchdogManager::begin() {
-    // Load boot failure counter FIRST — determines safe mode
+    // Load boot failure counter FIRST - determines safe mode
     _loadBootState();
 
     // Increment failure counter; markBootSuccess() resets it later
@@ -84,7 +84,7 @@ void WatchdogManager::begin() {
     _wifiWasConnected = false;
     _beginDone       = true;
 
-    Serial.printf(WDT_TAG " Started v3.0 — HW:%s  SafeMode:%s  BootFails:%u  Heap:%u  Temp:%.1fC\n",
+    Serial.printf(WDT_TAG " Started v3.0 - HW:%s  SafeMode:%s  BootFails:%u  Heap:%u  Temp:%.1fC\n",
                   _hwEnabled    ? "ON"  : "OFF",
                   _bootState.safeMode ? "YES" : "no",
                   _bootState.failCount,
@@ -96,14 +96,14 @@ void WatchdogManager::begin() {
 void WatchdogManager::loop() {
     unsigned long now = millis();
 
-    // 1. Feed hardware watchdog — MUST come first
+    // 1. Feed hardware watchdog - MUST come first
     if (_hwEnabled && _hwStarted) esp_task_wdt_reset();
 
     // 2. Loop stall detection
     _checkLoopStall(now);
     _lastLoopMs = now;
 
-    // 3. Module stall detection (every 5s — no need to scan every loop tick)
+    // 3. Module stall detection (every 5s - no need to scan every loop tick)
     if (now - _lastModCheck >= 5000UL) {
         _lastModCheck = now;
         _checkModules(now);
@@ -126,17 +126,17 @@ void WatchdogManager::loop() {
     // 6. Connectivity check (every 60 s, only when STA connected)
     if (now - _lastPingCheck >= WDT_PING_INTERVAL_MS) {
         _lastPingCheck = now;
-        if (wifiMgr.staConnected()) {  // cached — no WiFi.status() mutex
+        if (wifiMgr.staConnected()) {  // cached - no WiFi.status() mutex
             _checkConnectivity();
         } else {
             _internetOk = false;
         }
     }
 
-    // 7. WiFi disconnect recovery — trigger wifiMgr reconnect
-    bool wifiNow = wifiMgr.staConnected();  // cached — no WiFi.status() mutex
+    // 7. WiFi disconnect recovery - trigger wifiMgr reconnect
+    bool wifiNow = wifiMgr.staConnected();  // cached - no WiFi.status() mutex
     if (_wifiWasConnected && !wifiNow) {
-        Serial.println(WDT_TAG " WiFi disconnected — requesting reconnect");
+        Serial.println(WDT_TAG " WiFi disconnected - requesting reconnect");
         auditMgr.log(AuditSource::SYSTEM, "WIFI_LOST",
                      "WDT detected WiFi disconnect", false);
         _internetOk = false;
@@ -152,11 +152,11 @@ void WatchdogManager::_checkLoopStall(unsigned long now) {
     if (_lastLoopMs == 0) return;
     unsigned long gap = now - _lastLoopMs;
     if (gap > WDT_LOOP_REBOOT_MS) {
-        // Severe stall — hardware WDT should have caught this, but
+        // Severe stall - hardware WDT should have caught this, but
         // if somehow we're here, force reboot via SW reset.
-        Serial.printf(WDT_TAG " FATAL: loop() frozen for %lums — rebooting!\n", gap);
+        Serial.printf(WDT_TAG " FATAL: loop() frozen for %lums - rebooting!\n", gap);
         auditMgr.log(AuditSource::SYSTEM, "LOOP_FREEZE",
-                     String("Gap: ") + gap + "ms — rebooting", false);
+                     String("Gap: ") + gap + "ms - rebooting", false);
         delay(50);
         ESP.restart();
     } else if (gap > WDT_LOOP_MAX_MS) {
@@ -187,8 +187,8 @@ void WatchdogManager::_checkModules(unsigned long now) {
 //  Heap monitoring + cleanup
 // ─────────────────────────────────────────────────────────────
 void WatchdogManager::_checkHeap(uint32_t freeHeap, unsigned long now) {
-    // FIX: use IDF API for max allocatable block — a better fragmentation metric.
-    // A device can show 80KB "free" but only 12KB contiguous — API calls fail.
+    // FIX: use IDF API for max allocatable block - a better fragmentation metric.
+    // A device can show 80KB "free" but only 12KB contiguous - API calls fail.
     uint32_t maxBlock = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
 
     if (freeHeap < WDT_HEAP_CRITICAL_BYTES) {
@@ -205,7 +205,7 @@ void WatchdogManager::_checkHeap(uint32_t freeHeap, unsigned long now) {
         tryMemoryCleanup();
 
         if (_heapCriticalCount >= 3) {
-            Serial.println(WDT_TAG " Heap exhaustion after cleanup — rebooting");
+            Serial.println(WDT_TAG " Heap exhaustion after cleanup - rebooting");
             delay(100);
             ESP.restart();
         }
@@ -220,7 +220,7 @@ void WatchdogManager::_checkHeap(uint32_t freeHeap, unsigned long now) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  Smart memory cleanup — releases known reclaimable buffers
+//  Smart memory cleanup - releases known reclaimable buffers
 // ─────────────────────────────────────────────────────────────
 void WatchdogManager::tryMemoryCleanup() {
     // Force garbage collection of any pending AsyncWebServer response buffers
@@ -248,7 +248,7 @@ float WatchdogManager::cpuTemperature() const {
 void WatchdogManager::_checkTemperature() {
     float temp = cpuTemperature();
     if (temp >= WDT_TEMP_REBOOT_C) {
-        Serial.printf(WDT_TAG " EMERGENCY: CPU temp %.1fC >= %.1fC — rebooting!\n",
+        Serial.printf(WDT_TAG " EMERGENCY: CPU temp %.1fC >= %.1fC - rebooting!\n",
                       temp, WDT_TEMP_REBOOT_C);
         auditMgr.log(AuditSource::SYSTEM, "THERMAL_REBOOT",
                      String("Temp: ") + temp + "C", false);
@@ -257,19 +257,19 @@ void WatchdogManager::_checkTemperature() {
     } else if (temp >= WDT_TEMP_THROTTLE_C) {
         if (!_thermalThrottled) {
             _thermalThrottled = true;
-            Serial.printf(WDT_TAG " WARNING: CPU temp %.1fC — throttling to 80MHz\n", temp);
+            Serial.printf(WDT_TAG " WARNING: CPU temp %.1fC - throttling to 80MHz\n", temp);
             auditMgr.log(AuditSource::SYSTEM, "THERMAL_THROTTLE",
                          String("Temp: ") + temp + "C", false);
             _applyCpuFreq(80);
         }
     } else {
-        // Temperature is normal — restore speed if we previously throttled
+        // Temperature is normal - restore speed if we previously throttled
         if (_thermalThrottled) {
             _thermalThrottled = false;
             // Only restore if user has not manually set power_save mode
             if (_perfMode == WdtPerfMode::NORMAL || _perfMode == WdtPerfMode::TURBO) {
                 uint32_t restoreMhz = (_perfMode == WdtPerfMode::TURBO) ? 240 : 160;
-                Serial.printf(WDT_TAG " Temp %.1fC normal — restoring %uMHz\n", temp, restoreMhz);
+                Serial.printf(WDT_TAG " Temp %.1fC normal - restoring %uMHz\n", temp, restoreMhz);
                 auditMgr.log(AuditSource::SYSTEM, "THERMAL_RESTORED",
                              String("Temp: ") + temp + "C");
                 _applyCpuFreq(restoreMhz);
@@ -279,7 +279,7 @@ void WatchdogManager::_checkTemperature() {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  Internet connectivity ping — runs in a disposable FreeRTOS task
+//  Internet connectivity ping - runs in a disposable FreeRTOS task
 //  so loop() is never blocked by the up-to-5-second HTTP call.
 //
 //  FIX: The old implementation called HTTPClient::sendRequest("HEAD")
@@ -303,11 +303,11 @@ void WatchdogManager::_checkConnectivity() {
     if (_pingActive) return;
     _pingActive = true;
 
-    // Spawn a short-lived task — avoids blocking loop() for up to 5 s.
+    // Spawn a short-lived task - avoids blocking loop() for up to 5 s.
     // The task writes _internetOk and self-deletes.
     struct PingArgs { WatchdogManager* self; };
     auto* args = new (std::nothrow) PingArgs{this};
-    if (!args) { _pingActive = false; return; }  // OOM — skip this ping cycle
+    if (!args) { _pingActive = false; return; }  // OOM - skip this ping cycle
 
     BaseType_t ok = xTaskCreate([](void* p) {
         auto* a = static_cast<PingArgs*>(p);
@@ -346,7 +346,7 @@ void WatchdogManager::_checkConnectivity() {
 // ─────────────────────────────────────────────────────────────
 void WatchdogManager::markBootSuccess() {
     if (_bootState.failCount > 0 || _bootState.safeMode) {
-        Serial.printf(WDT_TAG " Boot success — resetting failure counter (was %u)\n",
+        Serial.printf(WDT_TAG " Boot success - resetting failure counter (was %u)\n",
                       _bootState.failCount);
     }
     _bootState.failCount   = 0;
@@ -358,7 +358,7 @@ void WatchdogManager::markBootSuccess() {
 
 // ── Boot failure counter: use NVS (wear-leveled) instead of LittleFS ────────
 // FIX: The old LittleFS-based _saveBootState() wrote a JSON file on EVERY boot
-// — even clean ones — causing unnecessary flash wear on the data partition.
+// - even clean ones - causing unnecessary flash wear on the data partition.
 // NVS uses its own wear-leveling layer and is designed for frequent small writes.
 void WatchdogManager::_loadBootState() {
     _bootState = {0, false, 0};
@@ -413,7 +413,7 @@ const char* WatchdogManager::perfModeStr() const {
 }
 
 void WatchdogManager::_applyCpuFreq(uint32_t mhz) {
-    // setCpuFrequencyMhz is Arduino ESP32 API — sets both CPU cores
+    // setCpuFrequencyMhz is Arduino ESP32 API - sets both CPU cores
     setCpuFrequencyMhz(mhz);
 }
 

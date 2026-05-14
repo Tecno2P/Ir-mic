@@ -19,7 +19,7 @@
 extern AuditManager auditMgr;
 extern AuthManager  authMgr;
 
-// Local helper — mirrors the pattern in web_server.cpp
+// Local helper - mirrors the pattern in web_server.cpp
 static void _sendJson(AsyncWebServerRequest* req, int code, const String& json) {
     AsyncWebServerResponse* r = req->beginResponse(code, "application/json", json);
     r->addHeader("Access-Control-Allow-Origin", "*");
@@ -64,7 +64,7 @@ static void _freeBodyBuf(AsyncWebServerRequest* req) {
         })
 
 // ============================================================
-//  WebUI::setupModuleRoutes()  — called from WebUI::begin()
+//  WebUI::setupModuleRoutes()  - called from WebUI::begin()
 // ============================================================
 void WebUI::setupModuleRoutes() {
 
@@ -74,7 +74,7 @@ void WebUI::setupModuleRoutes() {
         _sendJson(req, 200, nfcModule.tagsToJson());
     });
 
-    // GET /api/nfc/read  — poll for result
+    // GET /api/nfc/read  - poll for result
     _server.on("/api/nfc/read", HTTP_GET, [](AsyncWebServerRequest* req) {
         if (nfcModule.isReading()) {
             _sendJson(req, 200, "{\"ok\":true,\"reading\":true}");
@@ -177,7 +177,7 @@ void WebUI::setupModuleRoutes() {
             _sendJson(req, 200, "{\"ok\":true}");
         });
 
-    // GET /api/nfc/dict/progress — lightweight progress polling
+    // GET /api/nfc/dict/progress - lightweight progress polling
     _server.on("/api/nfc/dict/progress", HTTP_GET, [](AsyncWebServerRequest* req) {
         _sendJson(req, 200, nfcModule.dictProgressJson());
     });
@@ -192,7 +192,7 @@ void WebUI::setupModuleRoutes() {
                   (nfcModule.isDictRunning() ? "true" : "false") + "}");
     });
 
-    // GET /api/nfc/dict/data — returns {lines:[...], done:bool, found:N} for UI
+    // GET /api/nfc/dict/data - returns {lines:[...], done:bool, found:N} for UI
     _server.on("/api/nfc/dict/data", HTTP_GET, [](AsyncWebServerRequest* req) {
         String raw = nfcModule.pollDictResult();
         bool done = !nfcModule.isDictRunning();
@@ -212,7 +212,7 @@ void WebUI::setupModuleRoutes() {
                         display = "✅ FOUND " + line;
                         foundInBatch++;
                     } else if (line.startsWith("DONE:")) {
-                        display = "🏁 Complete — " + line.substring(5) + " keys cracked";
+                        display = "🏁 Complete - " + line.substring(5) + " keys cracked";
                     }
                     display.replace("\\", "\\\\");
                     display.replace("\"", "\\\"");
@@ -229,7 +229,7 @@ void WebUI::setupModuleRoutes() {
                   ",\"running\":" + (nfcModule.isDictRunning() ? "true" : "false") + "}");
     });
 
-    // GET /api/nfc/export?id=N  — download .nfc content
+    // GET /api/nfc/export?id=N  - download .nfc content
     _server.on("/api/nfc/export", HTTP_GET, [](AsyncWebServerRequest* req) {
         if (!req->hasParam("id")) { _sendJson(req, 400, "{\"error\":\"Missing id\"}"); return; }
         uint32_t id = req->getParam("id")->value().toInt();
@@ -327,7 +327,7 @@ void WebUI::setupModuleRoutes() {
         if (!authMgr.checkAuth(req)) return;
         JsonDocument doc; deserializeJson(doc, d, l);
         String uid = doc["uid"] | "";
-        // C-01 FIX: use writeCardAsync() — writeCard() blocks 300-500ms with
+        // C-01 FIX: use writeCardAsync() - writeCard() blocks 300-500ms with
         // raw delay() calls. Calling it here (AsyncWebServer task context) would
         // stall the HTTPS server for the full write duration. The async version
         // spawns a dedicated task and returns immediately; the card write proceeds
@@ -552,7 +552,7 @@ void WebUI::setupModuleRoutes() {
         _sendJson(req, 200, sysModule.gpioOverviewJson());
     });
 
-    // GET /api/gpio/conflicts — check all module pin assignments for conflicts
+    // GET /api/gpio/conflicts - check all module pin assignments for conflicts
     _server.on("/api/gpio/conflicts", HTTP_GET, [](AsyncWebServerRequest* req) {
         // Collect all active pin assignments
         std::map<uint8_t, String> pinMap;
@@ -667,7 +667,7 @@ void WebUI::setupModuleRoutes() {
     POST_BODY_MOD("/api/system/reboot", [](AsyncWebServerRequest* req, uint8_t* d, size_t l) {
         if (!authMgr.checkAuth(req)) return;
         _sendJson(req, 200, "{\"ok\":true}");
-        // Deferred restart — lets HTTP response transmit before reset
+        // Deferred restart - lets HTTP response transmit before reset
         extern portMUX_TYPE s_restartMux;
         extern volatile uint32_t s_restartAt;
         taskENTER_CRITICAL(&s_restartMux);
@@ -722,7 +722,7 @@ void WebUI::setupModuleRoutes() {
             cfg.moduleType = (Nrf24Module_t)(doc["moduleType"] | 0);
         }
 
-        // Pin numbers — UI sends strings from gpio-sel dropdowns
+        // Pin numbers - UI sends strings from gpio-sel dropdowns
         auto toPin = [&](const char* key, uint8_t def) -> uint8_t {
             if (doc[key].is<int>())         return doc[key].as<uint8_t>();
             if (doc[key].is<const char*>()) {
@@ -978,8 +978,8 @@ void WebUI::setupModuleRoutes() {
 //  Module Enable/Disable Toggle API
 // ============================================================
 
-// GET /api/modules/status — returns enabled state of all modules
-// POST /api/modules/toggle — body: {module:"nfc"|"rfid"|"nrf24"|"subghz", enabled:bool}
+// GET /api/modules/status - returns enabled state of all modules
+// POST /api/modules/toggle - body: {module:"nfc"|"rfid"|"nrf24"|"subghz", enabled:bool}
 void WebUI::setupModuleToggleRoutes() {
 
     _server.on("/api/modules/status", HTTP_GET,
@@ -1009,7 +1009,7 @@ void WebUI::setupModuleToggleRoutes() {
                 return;
             }
 
-            // ── Respond IMMEDIATELY — no blocking ─────────────
+            // ── Respond IMMEDIATELY - no blocking ─────────────
             // Hardware toggle runs on a one-shot background task
             // so the HTTP response is sent before any SPI/I2C ops
             auditMgr.logSystem(("MODULE_" + mod + (en?"_ON":"_OFF")).c_str());
@@ -1017,7 +1017,7 @@ void WebUI::setupModuleToggleRoutes() {
                 "{\"ok\":true,\"module\":\"" + mod +
                 "\",\"enabled\":" + (en ? "true" : "false") + "}");
 
-            // ── Background task — hardware safe toggle ─────────
+            // ── Background task - hardware safe toggle ─────────
             struct ToggleArgs { char mod[12]; bool en; };
             ToggleArgs* args = new ToggleArgs;
             mod.toCharArray(args->mod, sizeof(args->mod));

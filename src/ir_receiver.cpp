@@ -10,7 +10,7 @@ IRReceiver irReceiver;
 IRReceiver::IRReceiver()
     : _irRecv(nullptr), _paused(false),
       _pin(255), _lastCodeMs(0), _lastCode(0), _lastProtocol(0)
-{}  // _results removed from member — local variable in loop() avoids ISR race
+{}  // _results removed from member - local variable in loop() avoids ISR race
 
 IRReceiver::~IRReceiver() { destroyRecv(); }
 
@@ -53,7 +53,7 @@ void IRReceiver::destroyRecv() {
 
 void IRReceiver::loop() {
     if (_paused || !_irRecv) return;
-    decode_results results;   // local — avoids race with ISR writing to member
+    decode_results results;   // local - avoids race with ISR writing to member
     if (!_irRecv->decode(&results)) return;
     _irRecv->resume();
     if (shouldFilter(results)) return;
@@ -207,7 +207,7 @@ IRButton IRReceiver::decodeToButton(const decode_results& r) const {
         // our IRProtocol enum but do NOT exist in IRremoteESP8266 v2.8.6 decode_type_t.
         // They will be decoded as UNKNOWN and fall to the default RAW handler below.
         default:
-            // Truly unknown — fall through to generic RAW
+            // Truly unknown - fall through to generic RAW
             btn.protocol = IRProtocol::RAW;
             btn.code = 0; btn.bits = 0;
             goto capture_raw;
@@ -215,7 +215,7 @@ IRButton IRReceiver::decodeToButton(const decode_results& r) const {
 
     {   // Build name for simple protocols and apply correct TX defaults
         // Apply per-protocol repeat count + delay so the button is ready to
-        // transmit perfectly right after capture — no manual tuning needed.
+        // transmit perfectly right after capture - no manual tuning needed.
         RepeatPreset rp = defaultRepeatForProtocol(btn.protocol);
         btn.repeatCount = (rp.count  > 0) ? rp.count  : 1;
         btn.repeatDelay = (rp.delayMs > 0) ? rp.delayMs : IR_DEFAULT_REPEAT_DELAY;

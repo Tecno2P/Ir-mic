@@ -47,7 +47,7 @@ void WebUI::setupMicRoutes() {
         sendJson(req, 200, micModule.gpioJson());
     });
 
-    // POST /api/mic/gpio — save full hybrid config
+    // POST /api/mic/gpio - save full hybrid config
     _server.addHandler(new AsyncCallbackJsonWebHandler("/api/mic/gpio",
         [](AsyncWebServerRequest* req, JsonVariant& body){
             if (!authMgr.checkAuth(req)) return;
@@ -82,7 +82,7 @@ void WebUI::setupMicRoutes() {
                     }
                 }
             }
-            // ADC pin check — must be GPIO 32-39
+            // ADC pin check - must be GPIO 32-39
             static const uint8_t VALID_ADC[] = {32,33,34,35,36,39};
             for (uint8_t i = 0; i < MIC_ADC_MAX; i++) {
                 if (!cfg.adc[i].enabled) continue;
@@ -102,7 +102,7 @@ void WebUI::setupMicRoutes() {
                 sendJson(req,200,
                     "{\"ok\":true,\"source\":\""+micModule.activeSourceStr()+"\"}");
             else
-                sendJson(req,500,"{\"error\":\"Init failed — check wiring\"}");
+                sendJson(req,500,"{\"error\":\"Init failed - check wiring\"}");
         }));
 
     // POST /api/mic/stream/start
@@ -113,7 +113,7 @@ void WebUI::setupMicRoutes() {
                 sendJson(req,200,"{\"ok\":true,\"already\":true}"); return;
             }
             if (!micModule.startStream()){
-                sendJson(req,500,"{\"error\":\"No mic source ready — configure GPIO first\"}");
+                sendJson(req,500,"{\"error\":\"No mic source ready - configure GPIO first\"}");
                 return;
             }
             _micStop = false;
@@ -142,7 +142,7 @@ void WebUI::setupMicRoutes() {
             }
             String name = req->hasParam("name") ? req->getParam("name")->value() : "";
             if (!micModule.startRecording(name)){
-                sendJson(req,500,"{\"error\":\"Cannot open file — insert SD or free space\"}");
+                sendJson(req,500,"{\"error\":\"Cannot open file - insert SD or free space\"}");
                 return;
             }
             auditMgr.logSystem("MIC_REC_START");
@@ -233,13 +233,13 @@ void WebUI::setupMicRoutes() {
     Serial.println("[WEB] Mic routes ready");
 }
 
-// Called from setupMicRoutes() — but defined separately for clarity
+// Called from setupMicRoutes() - but defined separately for clarity
 
-// ── /api/mic/pins — real-time GPIO conflict map ───────────────
+// ── /api/mic/pins - real-time GPIO conflict map ───────────────
 void WebUI::setupMicPinsRoute() {
     _server.on("/api/mic/pins", HTTP_GET, [](AsyncWebServerRequest* req) {
 
-        // ── Static system pins — always occupied ──────────────
+        // ── Static system pins - always occupied ──────────────
         struct StaticPin { uint8_t gpio; const char* mod; const char* lbl; };
         static const StaticPin SYS[] = {
             {1,  "SYSTEM", "USB TX"},
@@ -354,7 +354,7 @@ void WebUI::setupMicPinsRoute() {
         }
 
         // ── Build label lookup for dynamic pins ───────────────
-        // We need per-pin labels — use a flat lookup
+        // We need per-pin labels - use a flat lookup
         const char* dynLabel[40] = {};
         for (uint8_t i = 0; i < dynCount; i++)
             dynLabel[dyn[i].gpio] = dyn[i].lbl;

@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================
-//  task_manager.h  —  Centralized FreeRTOS Task Architecture
+//  task_manager.h  -  Centralized FreeRTOS Task Architecture
 //
 //  Core 1 (Realtime/Loop):
 //    Arduino loop() (priority 1)

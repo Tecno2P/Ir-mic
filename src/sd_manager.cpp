@@ -12,7 +12,7 @@
 
 SdManager sdMgr;
 
-// C-04 FIX: Global VSPI bus mutex — defined here, extern declared in sd_manager.h.
+// C-04 FIX: Global VSPI bus mutex - defined here, extern declared in sd_manager.h.
 // Created in SdManager::begin() so it is ready before any module uses VSPI.
 SemaphoreHandle_t g_spi_vspi_mutex = nullptr;
 
@@ -52,7 +52,7 @@ void SdManager::begin() {
     // SD uses a dedicated SPIClass(VSPI) instance so the global SPI object
     // remains available to other modules (NFC in SPI mode, etc.).
     // SD_CS is passed to SPI.begin() as hardware SS so the ESP32 SPI
-    // peripheral drives it — SD.begin() then re-drives it via the library.
+    // peripheral drives it - SD.begin() then re-drives it via the library.
     if (!_spiBegun) {
         if (!_sdSpi) _sdSpi = new SPIClass(VSPI);
         _sdSpi->begin(SD_SCK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
@@ -80,7 +80,7 @@ bool SdManager::_mount() {
     if (!SD.begin(SD_CS_PIN, *_sdSpi, SD_SPI_FREQ)) {
         _mounted = false;
         if (tookMutex) xSemaphoreGive(g_spi_vspi_mutex);
-        // Don't log on every attempt — caller manages log rate
+        // Don't log on every attempt - caller manages log rate
         return false;
     }
 
@@ -103,23 +103,7 @@ bool SdManager::_mount() {
                   (SD.totalBytes() - SD.usedBytes()) / (1024ULL * 1024ULL));
 
     _ensureDirectories();
-    log("SD mounted — IR Remote started");
-    return true;
-}
-        _mounted = false;
-        return false;
-    }
-
-    _mounted             = true;
-    _probeFailCount      = 0;             // reset debounce counter
-    _remountIntervalMs   = SD_REMOUNT_MIN_MS; // reset back-off
-    Serial.printf(DEBUG_TAG " [SD] Mounted OK  type=%s  size=%lluMB  free=%lluMB\n",
-                  status().cardTypeStr.c_str(),
-                  SD.totalBytes()  / (1024ULL * 1024ULL),
-                  (SD.totalBytes() - SD.usedBytes()) / (1024ULL * 1024ULL));
-
-    _ensureDirectories();
-    log("SD mounted — IR Remote started");
+    log("SD mounted - IR Remote started");
     return true;
 }
 
@@ -174,7 +158,7 @@ void SdManager::loop() {
 // ── _probeSd ─────────────────────────────────────────────────
 // Debounced hot-plug detection:
 //   MOUNTED:   require SD_PROBE_FAIL_DEBOUNCE consecutive read failures
-//              before unmounting — prevents transient SPI glitches from
+//              before unmounting - prevents transient SPI glitches from
 //              causing flapping.
 //   UNMOUNTED: use exponential back-off on remount attempts to avoid
 //              spamming SD.begin() every 5 seconds when no card present.
@@ -182,7 +166,7 @@ void SdManager::_probeSd() {
     unsigned long now = millis();
 
     if (_mounted) {
-        // Health-check via cardType() — direct SPI register read, no file handle.
+        // Health-check via cardType() - direct SPI register read, no file handle.
         // SD.open("/") was unreliable on the ESP32 Arduino SD library:
         // f_opendir() can return a NULL handle even when the card IS present,
         // causing false "card removed" detections every 5 s.
@@ -191,22 +175,22 @@ void SdManager::_probeSd() {
         if (!cardPresent) {
             ++_probeFailCount;
             if (_probeFailCount >= SD_PROBE_FAIL_DEBOUNCE) {
-                Serial.printf(DEBUG_TAG " [SD] %u consecutive cardType=NONE — unmounting.\n",
+                Serial.printf(DEBUG_TAG " [SD] %u consecutive cardType=NONE - unmounting.\n",
                               (unsigned)_probeFailCount);
                 _probeFailCount = 0;
                 _unmount();
                 _remountIntervalMs = SD_REMOUNT_MIN_MS;
                 _lastRemountMs     = now;
             }
-            // else: transient — wait for next probe cycle
+            // else: transient - wait for next probe cycle
         } else {
-            // Card still present — reset fail counter
+            // Card still present - reset fail counter
             if (_probeFailCount > 0) {
                 _probeFailCount = 0;
             }
         }
     } else {
-        // Not mounted — try remount with back-off
+        // Not mounted - try remount with back-off
         if ((now - _lastRemountMs) < _remountIntervalMs) return;
         _lastRemountMs = now;
 
@@ -252,7 +236,7 @@ bool SdManager::_safePath(const String& path) const {
 String SdManager::_logTimestamp() const {
     time_t now = time(nullptr);
     if (now < 1700000000UL) {
-        // NTP not synced yet — use uptime
+        // NTP not synced yet - use uptime
         unsigned long s = millis() / 1000;
         char buf[24];
         snprintf(buf, sizeof(buf), "[up %02lu:%02lu:%02lu]",
@@ -396,7 +380,7 @@ std::vector<SdFileEntry> SdManager::listDir(const String& path) const {
     while (entry) {
         SdFileEntry fe;
         fe.name  = String(entry.name());
-        // entry.name() returns the full path on ESP32 SD lib — strip to basename
+        // entry.name() returns the full path on ESP32 SD lib - strip to basename
         int lastSlash = fe.name.lastIndexOf('/');
         if (lastSlash >= 0) fe.name = fe.name.substring(lastSlash + 1);
         fe.isDir   = entry.isDirectory();
@@ -487,7 +471,7 @@ bool SdManager::exportIRLibrary(const String& name) {
     String path = String(SD_DIR_IR_LIBRARY) + "/" + name + ".json";
     if (!_safePath(path)) return false;
 
-    // Use irDB streaming export — writes compact JSON
+    // Use irDB streaming export - writes compact JSON
     String json = irDB.exportJson();
     File f = SD.open(path, FILE_WRITE);
     if (!f) return false;
@@ -507,7 +491,7 @@ bool SdManager::importIRLibrary(const String& name) {
 
     File f = SD.open(path, FILE_READ);
     if (!f) return false;
-    // Read into String — IR library files should be < 200 KB
+    // Read into String - IR library files should be < 200 KB
     // (128 buttons × ~1.5 KB RAW worst-case)
     String json = "";
     json.reserve(min((size_t)f.size(), (size_t)65536));  // cap: corrupted FAT guard
@@ -627,7 +611,7 @@ size_t SdManager::otaFileSize(const String& target) const {
 
 // ── triggerOtaFromSD ─────────────────────────────────────────
 // Streams the SD OTA file through OtaManager::handleUploadChunk()
-// — identical code path to browser OTA, same Update library,
+// - identical code path to browser OTA, same Update library,
 // same safety guarantees.
 bool SdManager::triggerOtaFromSD(const String& target) {
     if (!_mounted) {
@@ -679,7 +663,7 @@ bool SdManager::triggerOtaFromSD(const String& target) {
         return false;
     }
 
-    log("SD-OTA: image accepted — rebooting");
+    log("SD-OTA: image accepted - rebooting");
     return true;
 }
 
@@ -723,7 +707,7 @@ String SdManager::readTextFile(const String& path, size_t maxBytes) const {
         ++read;
     }
     f.close();
-    if (truncated) out += "\n[...truncated — showing first " +
+    if (truncated) out += "\n[...truncated - showing first " +
                           String((unsigned)maxBytes) + " bytes of " +
                           String((unsigned)fileSize) + " total]";
     return out;
@@ -760,7 +744,7 @@ bool SdManager::moveFile(const String& src, const String& dst) {
     // Fall back to copy + delete
     if (!copyFileSd(src, dst)) return false;
     if (!SD.remove(src)) {
-        // Copy succeeded but source delete failed — delete the copy
+        // Copy succeeded but source delete failed - delete the copy
         SD.remove(dst);
         return false;
     }
@@ -806,7 +790,7 @@ bool SdManager::_deleteRecursiveImpl(const String& path) {
 // Unmounts, formats FAT32, then remounts.
 bool SdManager::formatCard() {
     if (!_mounted) return false;
-    Serial.println(DEBUG_TAG " [SD] FORMAT REQUESTED — unmounting before format");
+    Serial.println(DEBUG_TAG " [SD] FORMAT REQUESTED - unmounting before format");
     _flushLogRing();   // save pending log first
     SD.end();
     _mounted = false;
@@ -814,10 +798,10 @@ bool SdManager::formatCard() {
     // ESP32 Arduino SD library does not expose a format() function.
     // We use the underlying SDFS object from the SD library.
     // formatSD() is available in framework-arduinoespressif32 >= 2.0.5
-    // via #include <SDFS.h> — but it's not always exposed in the standard SD.h.
+    // via #include <SDFS.h> - but it's not always exposed in the standard SD.h.
     // Safest cross-version approach: use the low-level SD card write to
     // zero the MBR/FAT, then call SD.begin() which will re-init.
-    // LIMITATION: This is a basic format — not as thorough as mkfs.
+    // LIMITATION: This is a basic format - not as thorough as mkfs.
     // For a full FAT32 format, the user should use a PC tool.
     //
     // We use SDFS.format() which IS available in the ESP32 Arduino framework:
@@ -838,7 +822,7 @@ bool SdManager::formatCard() {
     return false;
 #endif
     if (ok) {
-        Serial.println(DEBUG_TAG " [SD] Format complete — remounting");
+        Serial.println(DEBUG_TAG " [SD] Format complete - remounting");
         _mount();
     } else {
         Serial.println(DEBUG_TAG " [SD] Format failed");
@@ -893,7 +877,7 @@ bool SdManager::queueMacro(const String& filename) {
 }
 
 // ── _tickMacro ───────────────────────────────────────────────
-// Called from loop() — fires one step at a time without blocking.
+// Called from loop() - fires one step at a time without blocking.
 void SdManager::_tickMacro() {
     if (!_macroRunning) return;
     if (millis() < _macroNextMs) return;
@@ -907,13 +891,13 @@ void SdManager::_tickMacro() {
     const MacroStep& step = _macroSteps[_macroStepIdx];
     IRButton btn = irDB.findById(step.buttonId);
     if (btn.id) {
-        // FIX: transmitAsync — SD macro steps execute from loop() via sdMgr.loop().
+        // FIX: transmitAsync - SD macro steps execute from loop() via sdMgr.loop().
         // Blocking transmit() here would stall the loop for every macro step.
         irTransmitter.transmitAsync(btn);
         Serial.printf(DEBUG_TAG " [SD-Macro] Step %u: TX btn=%u '%s'\n",
                       (unsigned)_macroStepIdx, btn.id, btn.name.c_str());
     } else {
-        Serial.printf(DEBUG_TAG " [SD-Macro] Step %u: btn %u not found — skipped\n",
+        Serial.printf(DEBUG_TAG " [SD-Macro] Step %u: btn %u not found - skipped\n",
                       (unsigned)_macroStepIdx, step.buttonId);
     }
 

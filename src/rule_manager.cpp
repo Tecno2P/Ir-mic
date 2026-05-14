@@ -36,7 +36,7 @@ void RuleManager::begin() {
         }
         if (dir) dir.close();
     }
-    Serial.printf(RULE_TAG " Started — %u rules loaded, nextId=%u\n",
+    Serial.printf(RULE_TAG " Started - %u rules loaded, nextId=%u\n",
                   (unsigned)ruleCount(), _nextId);
 }
 
@@ -63,7 +63,7 @@ void RuleManager::triggerRfidScan(const String& uid,
     if (!known) {
         _fireTrigger(RuleTrigger::RFID_UNKNOWN, uid);
     }
-    // FIX: was calling listRules() here independently — caused two full
+    // FIX: was calling listRules() here independently - caused two full
     // LittleFS scans per RFID event. Now uses shared cache via _getCachedRules().
     const auto& rules = _getCachedRules();
     for (const auto& r : rules) {
@@ -106,10 +106,10 @@ void RuleManager::triggerManual(uint32_t ruleId) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  Internal fire — matches trigger type + param
+//  Internal fire - matches trigger type + param
 // ─────────────────────────────────────────────────────────────
 void RuleManager::_fireTrigger(RuleTrigger trigger, const String& param) {
-    // FIX: use cached rules — no LittleFS scan per trigger event
+    // FIX: use cached rules - no LittleFS scan per trigger event
     const auto& rules = _getCachedRules();
     for (const auto& r : rules) {
         if (!r.enabled) continue;
@@ -247,7 +247,7 @@ bool RuleManager::setEnabled(uint32_t id, bool en) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  List / Load — with RAM cache
+//  List / Load - with RAM cache
 // ─────────────────────────────────────────────────────────────
 // FIX: listRules() previously performed a full LittleFS directory scan +
 // JSON deserialization on EVERY call. Since triggerIrReceived() and
@@ -289,7 +289,7 @@ const std::vector<RuleEntry>& RuleManager::_getCachedRules() const {
 }
 
 std::vector<RuleEntry> RuleManager::listRules() const {
-    return _getCachedRules();   // returns copy — callers may modify entries safely
+    return _getCachedRules();   // returns copy - callers may modify entries safely
 }
 
 bool RuleManager::loadRule(uint32_t id, RuleEntry& out) const {

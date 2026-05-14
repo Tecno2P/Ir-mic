@@ -2,18 +2,18 @@
 //  main.cpp  –  IR Remote Web GUI  v5.1.0  |  ESP32-WROOM-32
 //
 //  v5.1.0 build:
-//    FIX C-01: RFID writeCardAsync() — non-blocking write via dedicated task
+//    FIX C-01: RFID writeCardAsync() - non-blocking write via dedicated task
 //    FIX C-02: WDT ping task double-spawn guard (_pingActive flag)
 //    FIX C-03: NRF24 channel scan chunked 10/tick (was 125/tick, 16ms block)
-//    FIX C-04: Global VSPI bus mutex (g_spi_vspi_mutex) — SPI thread safety
-//    FIX M-01: SD File* closeOnce lambda — no handle leak on keep-alive
-//    FIX P-03: broadcastStatus() uses static char[] — no heap frag every 3s
+//    FIX C-04: Global VSPI bus mutex (g_spi_vspi_mutex) - SPI thread safety
+//    FIX M-01: SD File* closeOnce lambda - no handle leak on keep-alive
+//    FIX P-03: broadcastStatus() uses static char[] - no heap frag every 3s
 //    FIX S-01: Default auth password derived from MAC (was hardcoded)
 //    FIX S-02: OTA version check uses TLS CA cert (was setInsecure)
 //    + 5 AC protocols: DAIKIN, MITSUBISHI_AC, WHYNTER, HAIER_AC, COOLIX
 //    + IRButton icon + color fields
 //    + Scheduler per-entry repeatCount / repeatDelay
-//    + Internal LittleFS macros (MacroManager — no SD needed)
+//    + Internal LittleFS macros (MacroManager - no SD needed)
 // ============================================================
 #include <Arduino.h>
 #include <LittleFS.h>
@@ -49,7 +49,7 @@ static void onIRReceived(const IRButton& btn);
 static void onScheduleFire(const ScheduleEntry& entry);
 static void printBanner();
 
-// FIX: removed static — web_server.cpp accesses this via extern for safe restart
+// FIX: removed static - web_server.cpp accesses this via extern for safe restart
 portMUX_TYPE s_restartMux = portMUX_INITIALIZER_UNLOCKED;
 volatile uint32_t s_restartAt = 0;
 
@@ -66,7 +66,7 @@ void setup() {
     esp_log_level_set("vfs_api", ESP_LOG_ERROR);
     esp_log_level_set("vfs",     ESP_LOG_ERROR);
 
-    // ── CPU frequency — lock at 240MHz for minimum IR timing jitter ─────
+    // ── CPU frequency - lock at 240MHz for minimum IR timing jitter ─────
     // Without explicit setCpuFrequencyMhz(), ESP32 Arduino starts at 240MHz
     // but the watchdog's loadConfig() restores the saved perfMode later.
     // We set 240MHz here first so the WiFi/IR init path always runs at full
@@ -76,7 +76,7 @@ void setup() {
     // ── LittleFS (always required) ────────────────────────────
     initFilesystem();
 
-    // ── SD Card (optional — non-blocking if absent) ───────────
+    // ── SD Card (optional - non-blocking if absent) ───────────
     // begin() returns immediately if no card is detected.
     // All existing features work unchanged without SD.
     sdMgr.begin();
@@ -87,10 +87,10 @@ void setup() {
     // ── Groups ────────────────────────────────────────────────
     groupMgr.begin();
 
-    // ── Internal Macros (LittleFS — no SD needed) ─────────────
+    // ── Internal Macros (LittleFS - no SD needed) ─────────────
     macroMgr.onTransmit([](uint32_t buttonId) {
         IRButton btn = irDB.findById(buttonId);
-        // FIX: use transmitAsync — macro steps call this from loop() context.
+        // FIX: use transmitAsync - macro steps call this from loop() context.
         // transmit() would block for the full TX duration per macro step.
         if (btn.id) irTransmitter.transmitAsync(btn);
     });
@@ -111,7 +111,7 @@ void setup() {
     ruleMgr.onIrTransmit([](uint32_t buttonId) {
         IRButton btn = irDB.findById(buttonId);
         if (btn.id) {
-            // FIX: transmitAsync — rule actions fire from loop() context.
+            // FIX: transmitAsync - rule actions fire from loop() context.
             // Blocking transmit() here would stall all subsequent rule actions.
             irTransmitter.transmitAsync(btn);
             auditMgr.logIrTx(btn.name, btn.id);
@@ -186,7 +186,7 @@ void setup() {
                       (ss.totalBytes - ss.usedBytes) / (1024ULL * 1024ULL));
     }
 
-    // All modules initialised successfully — reset boot-failure counter.
+    // All modules initialised successfully - reset boot-failure counter.
     // This must be the LAST call in setup() so only a full clean boot clears it.
     wdtMgr.markBootSuccess();
 
@@ -219,12 +219,12 @@ void loop() {
     // SD loop: hot-plug probe, log flush, macro step tick
     sdMgr.loop();
 
-    // Internal macro tick (LittleFS macros — no SD needed)
+    // Internal macro tick (LittleFS macros - no SD needed)
     macroMgr.loop();
 
     // ── Hardware polling moved to hw_poll task (Core 1, priority 2) ──────
     // nfcModule.loop(), rfidModule.loop(), subGhzModule.loop(),
-    // nrf24Module.loop() — all removed from loop() and run in hw_poll task
+    // nrf24Module.loop() - all removed from loop() and run in hw_poll task
     // at a fixed 20ms tick via vTaskDelayUntil(). This removes 4 SPI bus
     // polling calls from every loop() iteration, reducing worst-case loop
     // duration by ~15ms under heavy SPI activity.
@@ -344,7 +344,7 @@ static void onScheduleFire(const ScheduleEntry& entry) {
                   copy.id, copy.name.c_str(), fireCount, fireDelay);
 
     // FIX: was calling irTransmitter.transmit() + delay() in loop() context.
-    // With fireCount=3 and fireDelay=200ms this blocked loop() for ~650ms —
+    // With fireCount=3 and fireDelay=200ms this blocked loop() for ~650ms -
     // starving IR receiver, WebSocket flush, WDT feed, and all other modules.
     //
     // Fix: post each fire as a separate IrTxCommand to the TX queue.
@@ -355,7 +355,7 @@ static void onScheduleFire(const ScheduleEntry& entry) {
     // applies it between the outer repeat iterations inside doTransmit().
     copy.repeatCount = fireCount;
     copy.repeatDelay = fireDelay;
-    irTransmitter.transmitAsync(copy);   // non-blocking — posts to ir_tx queue
+    irTransmitter.transmitAsync(copy);   // non-blocking - posts to ir_tx queue
 
     webUI.broadcastMessage(String("Scheduled TX: ") + copy.name);
     auditMgr.logScheduler(entry.name, entry.buttonId);

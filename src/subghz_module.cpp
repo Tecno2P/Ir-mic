@@ -1,6 +1,6 @@
 // ============================================================
 //  subghz_module.cpp  –  CC1101 Sub-1GHz Real Implementation
-//  Direct SPI register access — no external CC1101 library needed
+//  Direct SPI register access - no external CC1101 library needed
 // ============================================================
 #include "subghz_module.h"
 #include <SPI.h>
@@ -84,7 +84,7 @@ void SubGhzModule::setEnabled(bool en) {
         _hwConnected = false;
         // Put CC1101 to sleep via SPI if still alive
         if (_cc1101Spi) {
-            // SPWD strobe = 0x39 — puts CC1101 in power-down mode
+            // SPWD strobe = 0x39 - puts CC1101 in power-down mode
             pinMode(cfg.cs, OUTPUT);
             _cc1101Spi->beginTransaction(SPISettings(4000000,MSBFIRST,SPI_MODE0));
             digitalWrite(cfg.cs, LOW);
@@ -98,9 +98,9 @@ void SubGhzModule::setEnabled(bool en) {
         // Release GDO pins
         if (cfg.gdo0 > 0) pinMode(cfg.gdo0, INPUT);
         if (cfg.gdo2 > 0) pinMode(cfg.gdo2, INPUT);
-        Serial.println("[SUBGHZ] Disabled — CC1101 power-down, SPI released");
+        Serial.println("[SUBGHZ] Disabled - CC1101 power-down, SPI released");
     } else {
-        // Fresh init — begin() handles _cc1101Spi allocation
+        // Fresh init - begin() handles _cc1101Spi allocation
         begin();
     }
 }
@@ -133,7 +133,7 @@ void SubGhzModule::begin() {
         _spiWrite(CC1101_MDMCFG2,  0x30); // ASK/OOK modulation
         _spiWrite(CC1101_IOCFG0,   0x0D); // GDO0 = carrier sense
         _setModeIdle();
-        Serial.printf(SUBGHZ_TAG " CC1101 connected — GDO0=%u CS=%u\n",
+        Serial.printf(SUBGHZ_TAG " CC1101 connected - GDO0=%u CS=%u\n",
                       _cfg.gdo0, _cfg.cs);
     } else {
         Serial.println(SUBGHZ_TAG " CC1101 not detected");

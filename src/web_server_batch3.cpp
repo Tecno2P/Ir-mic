@@ -233,7 +233,7 @@ void WebUI::handleOtaVersionCheck(AsyncWebServerRequest* req) {
 
     // FIX: The old code called WiFiClientSecure::GET() synchronously inside
     // the AsyncWebServer request handler. AsyncWebServer handlers execute in
-    // the AsyncTCP task on Core 0 — blocking there for up to 5 seconds starved
+    // the AsyncTCP task on Core 0 - blocking there for up to 5 seconds starved
     // ALL concurrent HTTP and WebSocket processing for every connected client.
     //
     // Fix: respond with 202 Accepted immediately, spawn a disposable FreeRTOS
@@ -256,13 +256,13 @@ void WebUI::handleOtaVersionCheck(AsyncWebServerRequest* req) {
         delete a;
 
         WiFiClientSecure client;
-        // S-02 FIX: replaced setInsecure() — disabling TLS validation allows MITM
+        // S-02 FIX: replaced setInsecure() - disabling TLS validation allows MITM
         // attacks where a network attacker serves a fake version.json pointing to
         // malicious firmware. The device would display "update available" with an
         // attacker-controlled URL, and a naive user could trigger a malicious OTA.
         //
         // Mitigation applied: use the public GitHub API root CA (DigiCert Global Root G2)
-        // which signs api.github.com and raw.githubusercontent.com — the two most common
+        // which signs api.github.com and raw.githubusercontent.com - the two most common
         // self-hosted update server hosts. If the project uses a different server, the
         // operator should replace this CA bundle or set their own via menuconfig.
         //
@@ -330,7 +330,7 @@ void WebUI::handleOtaVersionCheck(AsyncWebServerRequest* req) {
 
         String out;
         serializeJson(resp, out);
-        webUI.broadcastRaw(out);   // push to WS clients — frontend handles "ota_version" event
+        webUI.broadcastRaw(out);   // push to WS clients - frontend handles "ota_version" event
         vTaskDelete(NULL);
     }, "ver_check", 8192, args, 1, NULL);
 }
@@ -355,7 +355,7 @@ void WebUI::setupWatchdogRoutes() {
             req->send(r);
         });
 
-    // POST /api/v1/watchdog/config — enable/disable HW watchdog, set heap threshold
+    // POST /api/v1/watchdog/config - enable/disable HW watchdog, set heap threshold
     B3_POST("/api/v1/watchdog/config",
         [this](AsyncWebServerRequest* req, uint8_t* d, size_t l) {
             if (!authMgr.checkAuth(req)) return;
@@ -379,7 +379,7 @@ void WebUI::setupWatchdogRoutes() {
                 ",\"perfMode\":\"" + wdtMgr.perfModeStr() + "\"}");
         });
 
-    // POST /api/v1/watchdog/clear-crashes — delete crash log
+    // POST /api/v1/watchdog/clear-crashes - delete crash log
     _server.on("/api/v1/watchdog/clear-crashes", HTTP_POST,
         [](AsyncWebServerRequest* req) {
             if (!authMgr.checkAuth(req)) return;

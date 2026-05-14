@@ -4,7 +4,7 @@
 //
 //  v2.2.0 (Upgrade 4):
 //    Stores multi-step IR macros directly in LittleFS under
-//    /macros/<name>.json — NO SD card required.
+//    /macros/<name>.json - NO SD card required.
 //
 //  FORMAT  /macros/tv_on.json
 //  {
@@ -18,12 +18,12 @@
 //
 //  API ENDPOINTS
 //  ─────────────
-//  GET  /api/macros          — list all macro names + step counts
-//  GET  /api/macro?name=x    — read macro JSON
-//  POST /api/macro           — create/replace macro (body = JSON)
-//  GET  /api/macro/delete?name=x  — delete macro
-//  GET  /api/macro/run?name=x     — run macro (non-blocking via loop())
-//  GET  /api/macro/status    — running state + progress
+//  GET  /api/macros          - list all macro names + step counts
+//  GET  /api/macro?name=x    - read macro JSON
+//  POST /api/macro           - create/replace macro (body = JSON)
+//  GET  /api/macro/delete?name=x  - delete macro
+//  GET  /api/macro/run?name=x     - run macro (non-blocking via loop())
+//  GET  /api/macro/status    - running state + progress
 // ============================================================
 #include <Arduino.h>
 #include <LittleFS.h>
@@ -79,7 +79,7 @@ public:
     // Abort a running macro
     void abort();
 
-    // TX callback (set before begin) — called for each step's buttonId
+    // TX callback (set before begin) - called for each step's buttonId
     using TxCallback = std::function<void(uint32_t buttonId)>;
     void onTransmit(TxCallback cb) { _txCb = cb; }
 

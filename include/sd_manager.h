@@ -5,25 +5,25 @@
 //
 //  DESIGN PRINCIPLES
 //  ─────────────────
-//  1. ALWAYS OPTIONAL — if SD is absent or fails to mount,
+//  1. ALWAYS OPTIONAL - if SD is absent or fails to mount,
 //     every existing LittleFS/internal feature continues to
 //     work exactly as before.  No crashes, no boot delays,
 //     no broken UI.
 //
-//  2. HOT-PLUG AWARE — isAvailable() re-probes the bus on
+//  2. HOT-PLUG AWARE - isAvailable() re-probes the bus on
 //     every call (with a debounce timer) so insertion and
 //     removal are handled gracefully at runtime.
 //
-//  3. RAM CONSERVATIVE — streaming I/O throughout; large
+//  3. RAM CONSERVATIVE - streaming I/O throughout; large
 //     file transfers never buffer the whole file in RAM.
 //     Log writes use a small fixed ring buffer, flushed
 //     periodically from loop().
 //
-//  4. OTA-SAFE — SD OTA flashes via the same Update library
+//  4. OTA-SAFE - SD OTA flashes via the same Update library
 //     path as browser OTA, reusing OtaManager internals.
 //     Browser OTA is NOT affected whether SD is present or not.
 //
-//  WIRING (VSPI — default SPI bus on ESP32)
+//  WIRING (VSPI - default SPI bus on ESP32)
 //  ────────────────────────────────────────
 //  SD Card │  ESP32 GPIO
 //  ────────┼────────────────────────────────────
@@ -33,7 +33,7 @@
 //  MOSI    │  GPIO 23  (SD_MOSI_PIN)
 //  MISO    │  GPIO 19  (SD_MISO_PIN)
 //  SCK     │  GPIO 18  (SD_SCK_PIN)
-//  CS      │  GPIO  4  (SD_CS_PIN) — configurable
+//  CS      │  GPIO  4  (SD_CS_PIN) - configurable
 //
 //  SD CARD FORMAT
 //  ──────────────
@@ -72,7 +72,7 @@
 // ── C-04 FIX: Global VSPI bus mutex ──────────────────────────────────────────
 // SD card (sd_manager) uses VSPI. NFC / NRF24 / SubGHz are user-configurable
 // and may also be set to VSPI. The hw_poll FreeRTOS task and the Arduino loop()
-// task both access the VSPI bus concurrently — SPIClass is NOT thread-safe.
+// task both access the VSPI bus concurrently - SPIClass is NOT thread-safe.
 // This mutex serialises all VSPI transactions across all tasks.
 //
 // Usage: wrap every SPI operation with:
@@ -91,7 +91,7 @@ extern SemaphoreHandle_t g_spi_vspi_mutex;
 
 // ── SD hardware pin defaults (overridable in config.h) ───────
 #ifndef SD_CS_PIN
-  #define SD_CS_PIN   4    // GPIO4  — safe, no boot-strap conflict
+  #define SD_CS_PIN   4    // GPIO4  - safe, no boot-strap conflict
 #endif
 #ifndef SD_MOSI_PIN
   #define SD_MOSI_PIN 23   // VSPI MOSI
@@ -103,7 +103,7 @@ extern SemaphoreHandle_t g_spi_vspi_mutex;
   #define SD_SCK_PIN  18   // VSPI SCK
 #endif
 #ifndef SD_SPI_FREQ
-  #define SD_SPI_FREQ 4000000UL   // 4 MHz — conservative; bump to 20 MHz if stable
+  #define SD_SPI_FREQ 4000000UL   // 4 MHz - conservative; bump to 20 MHz if stable
 #endif
 
 // ── SD directory structure ───────────────────────────────────
@@ -123,7 +123,7 @@ extern SemaphoreHandle_t g_spi_vspi_mutex;
 // ── Log / OTA limits ─────────────────────────────────────────
 #define SD_LOG_MAX_BYTES   (512UL * 1024UL)  // 512 KB max log before rotation
 #define SD_LOG_FLUSH_MS    10000UL           // flush log ring every 10 s
-#define SD_PROBE_INTERVAL      15000UL  // probe interval when mounted (15s — less SPI bus load)
+#define SD_PROBE_INTERVAL      15000UL  // probe interval when mounted (15s - less SPI bus load)
 #define SD_PROBE_FAIL_DEBOUNCE 3        // consecutive failures before unmount (~45s total)
 #define SD_REMOUNT_MIN_MS      10000UL  // first remount retry delay (10s)
 #define SD_REMOUNT_MAX_MS      60000UL  // max remount retry back-off (60s)
@@ -149,7 +149,7 @@ struct SdFileEntry {
     String   name;
     bool     isDir;
     size_t   size;
-    uint32_t modTime;   // Unix timestamp (0 if unknown — FAT32 has limited time support)
+    uint32_t modTime;   // Unix timestamp (0 if unknown - FAT32 has limited time support)
     String   fullPath;  // Absolute path for convenience
 };
 
@@ -192,7 +192,7 @@ public:
     bool     exists(const String& path) const;
     SdFileEntry  getFileInfo(const String& path) const;  // metadata (size, time)
     String   readTextFile(const String& path, size_t maxBytes = 8192) const; // preview
-    bool     formatCard();   // full format — use with confirmation only!
+    bool     formatCard();   // full format - use with confirmation only!
 
     // ── IR Library ────────────────────────────────────────────
     // Export current irDB to /sd/ir_library/<name>.json
@@ -217,7 +217,7 @@ public:
 
     // ── OTA from SD ───────────────────────────────────────────
     // Reads SD_OTA_FIRMWARE or SD_OTA_FILESYSTEM and flashes it.
-    // Calls otaMgr.handleUploadChunk() internally — same code
+    // Calls otaMgr.handleUploadChunk() internally - same code
     // path as browser OTA, same safety guarantees.
     // Returns false immediately if SD not available or file missing.
     bool     triggerOtaFromSD(const String& target);  // "firmware" or "filesystem"

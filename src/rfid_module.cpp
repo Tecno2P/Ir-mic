@@ -26,7 +26,7 @@ void RfidModule::setEnabled(bool en) {
             pinMode(cfg.powerPin, OUTPUT);
             digitalWrite(cfg.powerPin, LOW);  // power off the module
         }
-        Serial.println("[RFID] Disabled — pins released, power off");
+        Serial.println("[RFID] Disabled - pins released, power off");
     } else {
         // Reinit WITHOUT the 500ms blocking detection
         // Just configure pins and mark as enabled; loop() will detect cards
@@ -41,9 +41,8 @@ void RfidModule::setEnabled(bool en) {
         _byteCount  = 0; _synced = false; _syncCount = 0;
         _lastLevel  = digitalRead(cfg.dataPin);
         _lastPulse  = micros();
-        _hwConnected = true;  // optimistic — loop will validate
-        Serial.printf("[RFID] Enabled — DATA=%u CLK=%u
-",
+        _hwConnected = true;  // optimistic - loop will validate
+        Serial.printf("[RFID] Enabled - DATA=%u CLK=%u\n",
                       cfg.dataPin, cfg.clkPin);
     }
 }
@@ -84,7 +83,7 @@ void RfidModule::begin() {
     _lastLevel    = digitalRead(_cfg.dataPin);
     _lastPulse    = micros();
 
-    Serial.printf(RFID_TAG " %s — DATA=%u CLK=%u\n",
+    Serial.printf(RFID_TAG " %s - DATA=%u CLK=%u\n",
                   _hwConnected ? "Connected" : "Not detected",
                   _cfg.dataPin, _cfg.clkPin);
 }
@@ -140,7 +139,7 @@ void RfidModule::loop() {
                 _byteCount++;
             }
         } else {
-            // Out of timing — reset
+            // Out of timing - reset
             _byteCount   = 0;
             _halfBitCount= 0;
             memset(_rawBytes, 0, sizeof(_rawBytes));
@@ -235,7 +234,7 @@ void RfidModule::stopRead() {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  writeCardAsync — C-01 FIX
+//  writeCardAsync - C-01 FIX
 //  writeCard() uses delay(55) + delay(10) + delay(5) + hundreds of
 //  delayMicroseconds(256), totalling 300-500 ms. Calling it from any
 //  FreeRTOS task (especially hw_poll) blocks NFC/SubGHz/NRF24 polling
@@ -252,20 +251,20 @@ bool RfidModule::writeCardAsync(const String& uid) {
     struct WriteArgs { RfidModule* self; String uid; };
     auto* args = new (std::nothrow) WriteArgs{this, uid};
     if (!args) {
-        Serial.println(RFID_TAG " writeCardAsync: OOM — falling back to sync write");
+        Serial.println(RFID_TAG " writeCardAsync: OOM - falling back to sync write");
         return writeCard(uid);
     }
 
     BaseType_t ok = xTaskCreate([](void* p) {
         auto* a = static_cast<WriteArgs*>(p);
-        a->self->writeCard(a->uid);   // blocking OK — dedicated task
+        a->self->writeCard(a->uid);   // blocking OK - dedicated task
         delete a;
         vTaskDelete(NULL);
     }, "rfid_write", 4096, args, 1, nullptr);
 
     if (ok != pdPASS) {
         delete args;
-        Serial.println(RFID_TAG " writeCardAsync: task create failed — falling back to sync write");
+        Serial.println(RFID_TAG " writeCardAsync: task create failed - falling back to sync write");
         return writeCard(uid);   // last resort; caller should not be hw_poll
     }
     return true;

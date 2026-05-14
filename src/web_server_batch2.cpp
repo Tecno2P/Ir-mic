@@ -60,19 +60,19 @@ static void _freeB2Buf(AsyncWebServerRequest* req) {
 // ══ SECTION 1: RULE ENGINE ROUTES ════════════════════════════
 // ─────────────────────────────────────────────────────────────
 void WebUI::setupRuleRoutes() {
-    // GET  /api/v1/rules          — list all rules
+    // GET  /api/v1/rules          - list all rules
     _server.on("/api/v1/rules", HTTP_GET,
         [this](AsyncWebServerRequest* req) {
             auditMgr.logApi("/api/v1/rules", "GET");
             sendJsonB2(req, 200, ruleMgr.allRulesToJson());
         });
 
-    // POST /api/v1/rules          — create new rule
+    // POST /api/v1/rules          - create new rule
     B2_POST("/api/v1/rules",
         [this](AsyncWebServerRequest* req, uint8_t* d, size_t l) {
             handleRuleCreate(req, d, l); });
 
-    // POST /api/v1/rules/update   — update existing rule
+    // POST /api/v1/rules/update   - update existing rule
     B2_POST("/api/v1/rules/update",
         [this](AsyncWebServerRequest* req, uint8_t* d, size_t l) {
             handleRuleUpdate(req, d, l); });
@@ -85,11 +85,11 @@ void WebUI::setupRuleRoutes() {
     _server.on("/api/v1/rules/toggle", HTTP_GET,
         [this](AsyncWebServerRequest* req) { handleRuleToggle(req); });
 
-    // GET  /api/v1/rules/fire?id=X  — manually trigger a rule
+    // GET  /api/v1/rules/fire?id=X  - manually trigger a rule
     _server.on("/api/v1/rules/fire", HTTP_GET,
         [this](AsyncWebServerRequest* req) { handleRuleFire(req); });
 
-    // GET  /api/v1/rules/triggers  — list available trigger types
+    // GET  /api/v1/rules/triggers  - list available trigger types
     _server.on("/api/v1/rules/triggers", HTTP_GET,
         [](AsyncWebServerRequest* req) {
             const char* json =
@@ -103,7 +103,7 @@ void WebUI::setupRuleRoutes() {
             req->send(r);
         });
 
-    // GET  /api/v1/rules/actions   — list available action types
+    // GET  /api/v1/rules/actions   - list available action types
     _server.on("/api/v1/rules/actions", HTTP_GET,
         [](AsyncWebServerRequest* req) {
             const char* json =

@@ -29,7 +29,7 @@ void SystemModule::_initFastLED() {
     uint8_t n = min((uint8_t)MAX_LEDS, _ledCfg.numLeds);
 
     // FastLED requires compile-time DATA_PIN template parameter.
-    // GPIO2 is forbidden (boot strapping pin) — use GPIO13 instead.
+    // GPIO2 is forbidden (boot strapping pin) - use GPIO13 instead.
     // GPIO13 is safe: not forbidden, not input-only, no other module uses it permanently.
     FastLED.clearData();
     FastLED.addLeds<WS2812B, 13, GRB>(_leds, n);
@@ -129,7 +129,7 @@ LedConfig SystemModule::loadLedConfig() const {
     if (deserializeJson(doc, f) == DeserializationError::Ok) {
         cfg.type       = (LedType)(doc["type"]       | 0);
         cfg.mode       = (LedMode)(doc["mode"]       | 0);
-        cfg.dataPin    = doc["dataPin"]    | (uint8_t)13;  // GPIO2 forbidden — default to GPIO13
+        cfg.dataPin    = doc["dataPin"]    | (uint8_t)13;  // GPIO2 forbidden - default to GPIO13
         cfg.numLeds    = doc["numLeds"]    | (uint8_t)8;
         cfg.r          = doc["r"]          | (uint8_t)255;
         cfg.g          = doc["g"]          | (uint8_t)0;

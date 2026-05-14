@@ -17,7 +17,7 @@
 
 IRTransmitter irTransmitter;
 
-// Static queue handle — defined here, declared extern in header.
+// Static queue handle - defined here, declared extern in header.
 QueueHandle_t IRTransmitter::txQueue = nullptr;
 
 // ── Constructor ───────────────────────────────────────────────
@@ -32,7 +32,7 @@ IRTransmitter::~IRTransmitter() { destroyAll(); }
 
 // ── begin ─────────────────────────────────────────────────────
 void IRTransmitter::begin(const IrPinConfig& pins) {
-    // Create mutex once — idempotent if called again via reconfigure()
+    // Create mutex once - idempotent if called again via reconfigure()
     if (!_txMutex) {
         _txMutex = xSemaphoreCreateMutex();
         if (!_txMutex) {
@@ -41,14 +41,14 @@ void IRTransmitter::begin(const IrPinConfig& pins) {
         }
     }
 
-    // Create async TX queue once (depth 8 — enough for burst scheduling)
+    // Create async TX queue once (depth 8 - enough for burst scheduling)
     if (!txQueue) {
         txQueue = xQueueCreate(8, sizeof(IrTxCommand));
         if (!txQueue) {
             Serial.println(DEBUG_TAG " FATAL: IR TX queue creation failed");
             return;
         }
-        // Pin IR TX task to Core 1 alongside loop() — IR timing is CPU-bound
+        // Pin IR TX task to Core 1 alongside loop() - IR timing is CPU-bound
         // and benefits from being on the same core as the Arduino task so
         // FreeRTOS cooperative scheduling keeps them interleaved cleanly.
         // Priority 5 > loop() priority (1) so IR fires promptly when queued.
@@ -56,11 +56,11 @@ void IRTransmitter::begin(const IrPinConfig& pins) {
         xTaskCreatePinnedToCore(
             _txTask,        // task function
             "ir_tx",        // name
-            6144,           // stack (8 emitters — bumped from 4096)
+            6144,           // stack (8 emitters - bumped from 4096)
             this,           // param → IRTransmitter instance
             5,              // priority (higher than loop = 1)
-            nullptr,        // handle not stored — task runs forever
-            1               // Core 1 — same as Arduino loop()
+            nullptr,        // handle not stored - task runs forever
+            1               // Core 1 - same as Arduino loop()
         );
         Serial.println(DEBUG_TAG " IR TX task started on Core 1 (priority 5)");
     }
@@ -77,7 +77,7 @@ void IRTransmitter::begin(const IrPinConfig& pins) {
     }
 }
 
-// ── _txTask — IR TX FreeRTOS task ────────────────────────────
+// ── _txTask - IR TX FreeRTOS task ────────────────────────────
 // Blocks on txQueue. When a command arrives, calls transmit() which
 // takes _txMutex. delay() inside doTransmit() only blocks this task.
 /*static*/
@@ -110,7 +110,7 @@ void IRTransmitter::reconfigure(const IrPinConfig& pins) {
         }
         xSemaphoreGive(_txMutex);
     } else {
-        Serial.println(DEBUG_TAG " WARNING: reconfigure skipped — TX in progress");
+        Serial.println(DEBUG_TAG " WARNING: reconfigure skipped - TX in progress");
     }
 }
 
@@ -158,7 +158,7 @@ uint8_t IRTransmitter::emitterPin(uint8_t idx) const {
     return (idx < IR_MAX_EMITTERS && _senders[idx]) ? _pins[idx] : 255;
 }
 
-// ── transmitAsync — non-blocking post to TX task ──────────────
+// ── transmitAsync - non-blocking post to TX task ──────────────
 // Posts the IRButton to txQueue. Returns false if queue full.
 // Loop/scheduler/rule-engine should call this instead of transmit().
 bool IRTransmitter::transmitAsync(const IRButton& btn) {
@@ -172,17 +172,17 @@ bool IRTransmitter::transmitAsync(const IRButton& btn) {
         return false;
     }
     IrTxCommand cmd;
-    cmd.btn     = btn;   // IRButton copy — safe, owned by cmd
+    cmd.btn     = btn;   // IRButton copy - safe, owned by cmd
     cmd.rawMode = false;
     BaseType_t sent = xQueueSend(txQueue, &cmd, 0);  // non-blocking
     if (sent != pdTRUE) {
-        Serial.println(DEBUG_TAG " WARNING: IR TX queue full — command dropped");
+        Serial.println(DEBUG_TAG " WARNING: IR TX queue full - command dropped");
         return false;
     }
     return true;
 }
 
-// ── transmit (blocking — protected by FreeRTOS mutex) ─────────
+// ── transmit (blocking - protected by FreeRTOS mutex) ─────────
 bool IRTransmitter::transmit(const IRButton& btn) {
     if (!btn.isValid()) { Serial.println(DEBUG_TAG " TX: invalid button"); return false; }
     if (activeCount() == 0) { Serial.println(DEBUG_TAG " TX: no active emitters"); return false; }
@@ -191,7 +191,7 @@ bool IRTransmitter::transmit(const IRButton& btn) {
     // xSemaphoreTake is safe from any task and does not disable interrupts.
     if (!_txMutex) return false;
     if (xSemaphoreTake(_txMutex, pdMS_TO_TICKS(2000)) != pdTRUE) {
-        Serial.println(DEBUG_TAG " TX: mutex timeout — another TX in progress");
+        Serial.println(DEBUG_TAG " TX: mutex timeout - another TX in progress");
         return false;
     }
 
@@ -200,7 +200,7 @@ bool IRTransmitter::transmit(const IRButton& btn) {
                   btn.bits, btn.repeats, btn.repeatCount, btn.repeatDelay, activeCount(), btn.freqKHz);
 
     irReceiver.pause();
-    // Pre-TX quiet time — receiver must be silent before first modulated burst.
+    // Pre-TX quiet time - receiver must be silent before first modulated burst.
     // IR_PRE_TX_QUIET_MS (config.h) = 20ms. Stubborn devices may need 25-30ms.
     delay(IR_PRE_TX_QUIET_MS);
 
@@ -220,7 +220,7 @@ bool IRTransmitter::transmit(const IRButton& btn) {
         // Add 20ms margin on top of the actual signal length.
         uint32_t dynWait = (totalUs / 1000u) + 20u;
         if (dynWait > waitMs) waitMs = dynWait;
-        if (waitMs > 500u)    waitMs = 500u;   // hard cap — 500ms is plenty
+        if (waitMs > 500u)    waitMs = 500u;   // hard cap - 500ms is plenty
     }
     delay(waitMs);
     irReceiver.resume();
@@ -256,7 +256,7 @@ bool IRTransmitter::transmitRaw(const uint16_t* data, size_t len, uint16_t freqK
     if (xSemaphoreTake(_txMutex, pdMS_TO_TICKS(2000)) != pdTRUE) return false;
 
     irReceiver.pause();
-    delay(IR_PRE_TX_QUIET_MS);  // was 5ms then 20ms — now from config
+    delay(IR_PRE_TX_QUIET_MS);  // was 5ms then 20ms - now from config
     for (uint8_t i = 0; i < IR_MAX_EMITTERS; ++i)
         if (_senders[i]) _senders[i]->sendRaw(data, static_cast<uint16_t>(len), freqKHz);
     delay(IR_POST_TX_SETTLE_MS);
@@ -281,7 +281,7 @@ bool IRTransmitter::transmitRaw(const uint16_t* data, size_t len, uint16_t freqK
 //
 // "Large vs small device" signal reliability:
 //   • Small/cheap receivers (e.g. old TVs, fans): benefit from more repeats
-//   • Large AC units: use state-based protocols (DAIKIN etc.) or COOLIX/RAW —
+//   • Large AC units: use state-based protocols (DAIKIN etc.) or COOLIX/RAW -
 //     these already encode full state in every frame; extra repeat frames help.
 bool IRTransmitter::doTransmit(IRsend* s, const IRButton& btn) {
     uint8_t  total = (btn.repeatCount >= 1) ? btn.repeatCount : 1;
@@ -297,7 +297,7 @@ bool IRTransmitter::doTransmit(IRsend* s, const IRButton& btn) {
         return (reps >= minVal) ? reps : minVal;
     };
 
-    // Carrier frequency guard — correct any legacy/zero value before TX.
+    // Carrier frequency guard - correct any legacy/zero value before TX.
     // Wrong carrier = device can't decode the signal even if timing is perfect.
     uint16_t txFreq = btn.freqKHz;
     if (txFreq < 33 || txFreq > 56) txFreq = 38;  // out-of-range → safe default

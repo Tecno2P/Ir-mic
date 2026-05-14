@@ -19,7 +19,7 @@ void LogRotationManager::begin() {
     // Create archive dir if missing
     if (!LittleFS.exists(LOG_ARCHIVE_DIR))
         LittleFS.mkdir(LOG_ARCHIVE_DIR);
-    Serial.printf(LOG_ROT_TAG " Started — retention=%u days\n", _retentionDays);
+    Serial.printf(LOG_ROT_TAG " Started - retention=%u days\n", _retentionDays);
 }
 
 void LogRotationManager::loop() {
@@ -62,7 +62,7 @@ bool LogRotationManager::rotate() {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  _archiveToCsv — write CSV copy of current audit log to SD
+//  _archiveToCsv - write CSV copy of current audit log to SD
 //  FIX: was using SD.open() directly, bypassing sdMgr safety/mutex.
 //       Now uses sdMgr.log() API which handles SD state correctly.
 bool LogRotationManager::_archiveToCsv() const {
@@ -75,7 +75,7 @@ bool LogRotationManager::_archiveToCsv() const {
              t->tm_year + 1900, t->tm_mon + 1, t->tm_mday);
     String csv = auditToCsv(-1, AUDIT_MAX_ENTRIES);
     if (csv.isEmpty()) return false;
-    // Use sdMgr API — avoids direct SD.open() which bypasses hot-plug safety
+    // Use sdMgr API - avoids direct SD.open() which bypasses hot-plug safety
     String header = String("# Audit CSV Archive: ") + today + "\n";
     sdMgr.log(header + csv);
     Serial.printf(LOG_ROT_TAG " CSV archive written to SD log (%u bytes)\n",
@@ -98,7 +98,7 @@ void LogRotationManager::pruneOldLogs() {
     File dir = LittleFS.open(LOG_ARCHIVE_DIR);
     if (!dir || !dir.isDirectory()) { if (dir) dir.close(); return; }
 
-    // Collect paths to delete first — do not delete while iterating (UB on LittleFS)
+    // Collect paths to delete first - do not delete while iterating (UB on LittleFS)
     std::vector<String> toDelete;
     File f = dir.openNextFile();
     while (f) {

@@ -373,7 +373,7 @@ void WebUI::setupAuditRoutes() {
     _server.on("/api/v1/audit", HTTP_GET,
         [this](AsyncWebServerRequest* req) { handleAuditGet(req); });
 
-    // GET /api/v1/audit/export  — download full log as JSON file
+    // GET /api/v1/audit/export  - download full log as JSON file
     _server.on("/api/v1/audit/export", HTTP_GET,
         [this](AsyncWebServerRequest* req) { handleAuditExport(req); });
 
@@ -417,7 +417,7 @@ void WebUI::handleAuditGet(AsyncWebServerRequest* req) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// GET /api/v1/audit/export  — triggers browser download
+// GET /api/v1/audit/export  - triggers browser download
 // ─────────────────────────────────────────────────────────────
 void WebUI::handleAuditExport(AsyncWebServerRequest* req) {
     String json = auditMgr.toJson(-1, AUDIT_MAX_ENTRIES);
@@ -448,11 +448,11 @@ void WebUI::handleAuditClear(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
 // ══ SECTION 3: DEBUG PANEL ROUTES ════════════════════════════
 // ─────────────────────────────────────────────────────────────
 void WebUI::setupDebugRoutes() {
-    // GET /api/v1/debug/stats  — live heap, CPU, uptime
+    // GET /api/v1/debug/stats  - live heap, CPU, uptime
     _server.on("/api/v1/debug/stats", HTTP_GET,
         [this](AsyncWebServerRequest* req) { handleDebugStats(req); });
 
-    // GET /api/v1/debug/modules  — module enable/status
+    // GET /api/v1/debug/modules  - module enable/status
     _server.on("/api/v1/debug/modules", HTTP_GET,
         [this](AsyncWebServerRequest* req) { handleDebugModules(req); });
 

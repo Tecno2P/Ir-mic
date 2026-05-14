@@ -54,7 +54,7 @@ static void _freeB4Buf(AsyncWebServerRequest* req) {
         })
 
 void WebUI::setupLogRoutes() {
-    // GET /api/v1/logs/list — archived logs list
+    // GET /api/v1/logs/list - archived logs list
     _server.on("/api/v1/logs/list", HTTP_GET,
         [](AsyncWebServerRequest* req) {
             if (!authMgr.checkAuth(req)) return;
@@ -64,15 +64,15 @@ void WebUI::setupLogRoutes() {
             req->send(r);
         });
 
-    // GET /api/v1/logs/export.csv — download audit as CSV
+    // GET /api/v1/logs/export.csv - download audit as CSV
     _server.on("/api/v1/logs/export.csv", HTTP_GET,
         [this](AsyncWebServerRequest* req) { handleLogExportCsv(req); });
 
-    // GET /api/v1/audit/export.csv — alias
+    // GET /api/v1/audit/export.csv - alias
     _server.on("/api/v1/audit/export.csv", HTTP_GET,
         [this](AsyncWebServerRequest* req) { handleLogExportCsv(req); });
 
-    // POST /api/v1/logs/rotate — force rotate now
+    // POST /api/v1/logs/rotate - force rotate now
     _server.on("/api/v1/logs/rotate", HTTP_POST,
         [](AsyncWebServerRequest* req) {
             if (!authMgr.checkAuth(req)) return;
@@ -103,7 +103,7 @@ void WebUI::setupLogRoutes() {
 
 // GET /api/v1/logs/export.csv[?source=RFID&limit=500]
 void WebUI::handleLogExportCsv(AsyncWebServerRequest* req) {
-    // FIX: auth check was missing — anyone could download full audit log
+    // FIX: auth check was missing - anyone could download full audit log
     if (!authMgr.checkAuth(req)) return;
     int    srcFilter = -1;
     size_t limit     = 500;

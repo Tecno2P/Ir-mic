@@ -1,6 +1,6 @@
 // ============================================================
 //  audit_manager.cpp  –  Audit Trail / Event Log System
-//  Batch 1 — Logs every significant event with timestamp
+//  Batch 1 - Logs every significant event with timestamp
 // ============================================================
 #include "audit_manager.h"
 #include "scheduler.h"   // for NTP time
@@ -20,7 +20,7 @@ void AuditManager::begin() {
     _load();
     // Always log a boot event
     logSystem("BOOT");
-    Serial.printf(AUDIT_TAG " Started — %u entries loaded\n", (unsigned)_entries.size());
+    Serial.printf(AUDIT_TAG " Started - %u entries loaded\n", (unsigned)_entries.size());
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ void AuditManager::log(AuditSource source,
 
     _addEntry(e);
 
-    Serial.printf(AUDIT_TAG " [%s] %s — %s (%s)\n",
+    Serial.printf(AUDIT_TAG " [%s] %s - %s (%s)\n",
                   e.sourceStr.c_str(),
                   e.event.c_str(),
                   e.detail.c_str(),
@@ -180,7 +180,7 @@ void AuditManager::save() const {
         Serial.println(AUDIT_TAG " ERROR: Cannot open audit log for write");
         return;
     }
-    // Stream write — no full RAM copy
+    // Stream write - no full RAM copy
     f.print("{\"total\":");
     f.print(_totalLogged);
     f.print(",\"nextId\":");
@@ -222,7 +222,7 @@ void AuditManager::_load() {
     DeserializationError err = deserializeJson(doc, f);
     f.close();
     if (err) {
-        Serial.println(AUDIT_TAG " WARNING: Corrupt audit log — starting fresh");
+        Serial.println(AUDIT_TAG " WARNING: Corrupt audit log - starting fresh");
         return;
     }
 
@@ -251,7 +251,7 @@ void AuditManager::_load() {
 void AuditManager::_addEntry(AuditEntry& e) {
     _entries.push_back(e);
     _totalLogged++;
-    // Rotate — drop oldest if over limit
+    // Rotate - drop oldest if over limit
     if (_entries.size() > AUDIT_MAX_ENTRIES) {
         _entries.erase(_entries.begin());
     }

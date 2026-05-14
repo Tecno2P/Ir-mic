@@ -59,7 +59,7 @@ void WiFiManager::loop() {
     // Delayed AP shutdown after STA connected
     if (_apStopAt > 0 && millis() >= _apStopAt) {
         _apStopAt = 0;
-        if (_staConnected) {  // use cache — avoids WiFi.status() in loop()
+        if (_staConnected) {  // use cache - avoids WiFi.status() in loop()
             _stopAP();
         }
     }
@@ -69,7 +69,7 @@ void WiFiManager::loop() {
 // ── Event: STA got IP ─────────────────────────────────────────
 void WiFiManager::_onStaGotIP() {
     _wasConnected         = true;
-    _staConnected         = true;   // cache — avoids WiFi.status() per tick
+    _staConnected         = true;   // cache - avoids WiFi.status() per tick
     _reconnectInterval    = 5000UL;
     _lastReconnectAttempt = millis();
 
@@ -79,13 +79,13 @@ void WiFiManager::_onStaGotIP() {
     Serial.printf(DEBUG_TAG "   RSSI : %d dBm\n", (int)WiFi.RSSI());
     Serial.printf(DEBUG_TAG " AP still ON at 192.168.4.1 (turning off in 7s)\n");
 
-    // FIX: confirm OTA boot AFTER WiFi connects — not in setup().
+    // FIX: confirm OTA boot AFTER WiFi connects - not in setup().
     // If this is a post-OTA boot and WiFi works, the firmware is valid.
     // If WiFi never connects (bad creds in new firmware), this line is never
     // reached, boot counter stays elevated, and safe mode or rollback activates.
-    // No-op on non-OTA boots — always safe to call.
+    // No-op on non-OTA boots - always safe to call.
     esp_ota_mark_app_valid_cancel_rollback();
-    Serial.println(DEBUG_TAG " [OTA] Boot confirmed after WiFi connect — rollback cancelled");
+    Serial.println(DEBUG_TAG " [OTA] Boot confirmed after WiFi connect - rollback cancelled");
 
     // Batch 2+3: Rule trigger on WiFi connect
     ruleMgr.triggerWifiConnect(WiFi.SSID());
@@ -98,15 +98,15 @@ void WiFiManager::_onStaGotIP() {
 void WiFiManager::_onStaDisconnected() {
     bool wasConn = _wasConnected;
     _wasConnected = false;
-    _staConnected = false;  // cache — avoids WiFi.status() per tick
+    _staConnected = false;  // cache - avoids WiFi.status() per tick
     _apStopAt     = 0;   // cancel pending AP shutdown
 
     if (wasConn) {
-        Serial.println(DEBUG_TAG " [WiFi] STA disconnected — AP fallback ON");
+        Serial.println(DEBUG_TAG " [WiFi] STA disconnected - AP fallback ON");
         // Batch 2+3: Rule trigger on WiFi disconnect
         ruleMgr.triggerWifiDisconnect();
     } else {
-        Serial.println(DEBUG_TAG " [WiFi] STA connect failed — AP still ON");
+        Serial.println(DEBUG_TAG " [WiFi] STA connect failed - AP still ON");
     }
 
     // Ensure AP is running so user can reconnect
@@ -146,7 +146,7 @@ void WiFiManager::_stopAP() {
     if (!_apActive) return;
     WiFi.softAPdisconnect(true);
     _apActive = false;
-    Serial.println(DEBUG_TAG " AP OFF — STA connected to router");
+    Serial.println(DEBUG_TAG " AP OFF - STA connected to router");
     Serial.printf(DEBUG_TAG " Web GUI: http://%s\n",
                   WiFi.localIP().toString().c_str());
 }
@@ -173,14 +173,14 @@ void WiFiManager::applyStaConfig() {
         _wasConnected = false;
         _apStopAt     = 0;
         if (!_apActive) _startAP();
-        Serial.println(DEBUG_TAG " STA disabled — AP ON");
+        Serial.println(DEBUG_TAG " STA disabled - AP ON");
     }
 }
 
 // ── _handleReconnect ──────────────────────────────────────────
 void WiFiManager::_handleReconnect() {
     if (!_cfg.staEnabled || _cfg.staSSID.length() == 0) return;
-    if (_staConnected) return;  // use cache — avoids WiFi.status() every tick
+    if (_staConnected) return;  // use cache - avoids WiFi.status() every tick
 
     unsigned long now = millis();
     if (_staInitiated && (now - _lastReconnectAttempt) >= _reconnectInterval) {
@@ -323,7 +323,7 @@ String WiFiManager::staIP() const {
     return _staConnected ? WiFi.localIP().toString() : "";
 }
 bool   WiFiManager::staConnected() const {
-    // Returns cached value — updated by _onStaGotIP() / _onStaDisconnected()
+    // Returns cached value - updated by _onStaGotIP() / _onStaDisconnected()
     // events. Avoids WiFi.status() mutex acquisition on every loop() tick.
     return _staConnected;
 }

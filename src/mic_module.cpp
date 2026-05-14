@@ -7,7 +7,7 @@
 
 MicModule micModule;
 
-// ── Reserved pins — must not conflict ────────────────────────
+// ── Reserved pins - must not conflict ────────────────────────
 static const uint8_t RESERVED[] = {
     1,3,4,6,7,8,9,10,11,12,14,15,18,19,20,23,24,27
 };
@@ -120,7 +120,7 @@ MicMixMode MicModule::_activeMode() const {
         case MicMixMode::I2S_ONLY: return MicMixMode::I2S_ONLY;
         case MicMixMode::ADC_ONLY: return MicMixMode::ADC_ONLY;
         case MicMixMode::HYBRID:
-            // Hybrid needs both — fallback gracefully
+            // Hybrid needs both - fallback gracefully
             if (_i2sInited && _adcInited) return MicMixMode::HYBRID;
             if (_i2sInited)  return MicMixMode::I2S_ONLY;
             if (_adcInited)  return MicMixMode::ADC_ONLY;
@@ -192,8 +192,8 @@ size_t MicModule::_readADC(int16_t* pcm, size_t maxSamples) {
 
     for (size_t s = 0; s < sampPerMic && out < maxSamples; s++) {
         // Read all ADC mics and mix to mono
-        // Note: analogRead takes ~10µs on ESP32 — at 16kHz we need 62µs/sample
-        // Multiple mics fill the timing gap naturally — no extra delay needed
+        // Note: analogRead takes ~10µs on ESP32 - at 16kHz we need 62µs/sample
+        // Multiple mics fill the timing gap naturally - no extra delay needed
         int32_t mixed = 0;
         for (uint8_t m = 0; m < _adcCount; m++) {
             int32_t raw     = analogRead(_adcPins[m]); // 0-4095, ~10µs each
@@ -213,7 +213,7 @@ size_t MicModule::_readADC(int16_t* pcm, size_t maxSamples) {
     return out;
 }
 
-// ── Hybrid read — blend I2S + ADC ────────────────────────────
+// ── Hybrid read - blend I2S + ADC ────────────────────────────
 size_t MicModule::_readHybrid(int16_t* pcm, size_t maxSamples) {
     static int16_t i2sBuf[MIC_DMA_BUF_LEN * 2];
     static int16_t adcBuf[MIC_DMA_BUF_LEN * 2];
@@ -235,7 +235,7 @@ size_t MicModule::_readHybrid(int16_t* pcm, size_t maxSamples) {
     return n;
 }
 
-// ── readChunk — called by WS stream task ─────────────────────
+// ── readChunk - called by WS stream task ─────────────────────
 size_t MicModule::readChunk(uint8_t* outBuf, size_t maxLen) {
     if (!_streaming) return 0;
     size_t maxSamples = maxLen / sizeof(int16_t);
@@ -261,10 +261,10 @@ void MicModule::begin() {
     // count enabled ADC mics
     for (auto& a : _cfg.adc) if (a.enabled) { anyOk |= _initADC(); break; }
 
-    Serial.printf("[MIC] begin — source=%s\n", activeSourceStr().c_str());
+    Serial.printf("[MIC] begin - source=%s\n", activeSourceStr().c_str());
 }
 
-// ── loop — recording tick ─────────────────────────────────────
+// ── loop - recording tick ─────────────────────────────────────
 void MicModule::loop() {
     if (!_recording) return;
 
@@ -291,7 +291,7 @@ void MicModule::loop() {
 // ── Stream control ────────────────────────────────────────────
 bool MicModule::startStream() {
     if (_activeMode() == MicMixMode::AUTO) {
-        Serial.println("[MIC] No source — configure I2S or ADC first");
+        Serial.println("[MIC] No source - configure I2S or ADC first");
         return false;
     }
     i2s_zero_dma_buffer(MIC_I2S_PORT);
@@ -353,7 +353,7 @@ void MicModule::stopRecording() {
     if (!_recording) return;
     _recording = false;
     if (_recFile) { _updateWavHeader(); _recFile.close(); }
-    Serial.printf("[MIC] Rec stop — %uKB — %s\n",
+    Serial.printf("[MIC] Rec stop - %uKB - %s\n",
         _recBytes/1024, _recFilename.c_str());
 }
 
@@ -374,7 +374,7 @@ bool MicModule::applyConfig(const MicConfig& cfg) {
     _deinitADC();
     if (cfg.i2sEnabled) ok |= _initI2S();
     for (auto& a : cfg.adc) if (a.enabled) { ok |= _initADC(); break; }
-    Serial.printf("[MIC] Config applied — source=%s\n",
+    Serial.printf("[MIC] Config applied - source=%s\n",
                   activeSourceStr().c_str());
     return ok || (!cfg.i2sEnabled && _adcCount==0); // no error if both disabled
 }

@@ -29,17 +29,17 @@ public:
     IRTransmitter();
     ~IRTransmitter();
 
-    // Call once from setup() — also starts the IR TX task.
+    // Call once from setup() - also starts the IR TX task.
     void begin(const IrPinConfig& pins);
 
     // Reconfigure emitters at runtime (no reboot needed).
     void reconfigure(const IrPinConfig& pins);
 
-    // Blocking transmit — waits for mutex, does TX, returns result.
+    // Blocking transmit - waits for mutex, does TX, returns result.
     // Safe to call from any task. Blocks caller for TX duration.
     bool transmit(const IRButton& btn);
 
-    // Non-blocking async transmit — posts to irTxQueue.
+    // Non-blocking async transmit - posts to irTxQueue.
     // Returns false only if queue is full (caller is not blocked).
     // Use this from loop() / scheduler / rule engine.
     bool transmitAsync(const IRButton& btn);
@@ -60,20 +60,20 @@ public:
     // Active GPIO for emitter at index i (255 = disabled/invalid).
     uint8_t emitterPin(uint8_t idx) const;
 
-    // Queue handle — exposed so main.cpp can create the IR task.
+    // Queue handle - exposed so main.cpp can create the IR task.
     static QueueHandle_t txQueue;
 
 private:
     IRsend*          _senders[IR_MAX_EMITTERS];
     uint8_t          _pins   [IR_MAX_EMITTERS];
     uint8_t          _count;
-    SemaphoreHandle_t _txMutex;   // FreeRTOS mutex — replaces bare bool
+    SemaphoreHandle_t _txMutex;   // FreeRTOS mutex - replaces bare bool
 
     void destroyAll();
     void createSender(uint8_t idx, uint8_t pin);
     bool doTransmit(IRsend* s, const IRButton& btn);
 
-    // IR TX task body — static so it can be passed to xTaskCreate
+    // IR TX task body - static so it can be passed to xTaskCreate
     static void _txTask(void* param);
 };
 

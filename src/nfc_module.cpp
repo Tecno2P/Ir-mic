@@ -65,7 +65,7 @@ bool NfcModule::_initPN532() {
     pn->begin();
     _fwVersion = pn->getFirmwareVersion();
     if (!_fwVersion) {
-        Serial.println("[NFC] PN532 not found — getFirmwareVersion() = 0");
+        Serial.println("[NFC] PN532 not found - getFirmwareVersion() = 0");
         delete pn;
         return false;
     }
@@ -74,7 +74,7 @@ bool NfcModule::_initPN532() {
 
     _nfc = pn;
     _hwConnected = true;
-    Serial.printf("[NFC] PN532 connected — FW: %u.%u\n",
+    Serial.printf("[NFC] PN532 connected - FW: %u.%u\n",
                   (_fwVersion >> 16) & 0xFF,
                   (_fwVersion >>  8) & 0xFF);
     return true;
@@ -108,7 +108,7 @@ void NfcModule::setEnabled(bool en) {
         _deinitPN532();
         // Release I2C bus if it was used
         if (cfg.iface == NfcIface::I2C) Wire.end();
-        Serial.println("[NFC] Disabled — bus released");
+        Serial.println("[NFC] Disabled - bus released");
     } else {
         reinit();
     }
@@ -158,7 +158,7 @@ void NfcModule::loop() {
             } else {
                 _dictKeyIdx++;
                 if (_dictKeyIdx >= MIFARE_DICT_LEN) {
-                    // All keys tried for this type — move to KeyB or next sector
+                    // All keys tried for this type - move to KeyB or next sector
                     if (_dictKeyType == 0 && _dictDoKeyB) {
                         _dictKeyType = 1;
                         _dictKeyIdx  = 0;
@@ -175,7 +175,7 @@ void NfcModule::loop() {
                 summary += _dictFoundCount;
                 summary += "\n";
                 _dictPending += summary;
-                Serial.printf("[NFC] Dict attack complete — %u keys found\n", _dictFoundCount);
+                Serial.printf("[NFC] Dict attack complete - %u keys found\n", _dictFoundCount);
             }
         }
     }
@@ -195,7 +195,7 @@ void NfcModule::_pollForTag() {
     uint8_t uidLen  = 0;
 
     // Adafruit PN532 v1.3.x: readPassiveTargetID(baudrate, uid, uidLen, timeout)
-    // No ATQA/SAK args — derive card type from UID length instead.
+    // No ATQA/SAK args - derive card type from UID length instead.
     if (!pn->readPassiveTargetID(PN532_MIFARE_ISO14443A,
                                   uid, &uidLen, 100)) return;
 
@@ -232,7 +232,7 @@ void NfcModule::_pollForTag() {
     //
     // Look up saved tag name for the rule trigger param.
     String tagName = "";
-    // (NFC tags are stored in nfcModule's tag list — scan for match)
+    // (NFC tags are stored in nfcModule's tag list - scan for match)
     for (const auto& saved : _tags) {
         if (saved.uid.equalsIgnoreCase(tag.uid)) {
             tagName = saved.name;

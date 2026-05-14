@@ -47,7 +47,7 @@ IRDatabase::IRDatabase()
 bool IRDatabase::begin() {
     _buttons.clear();
     // FIX: pre-allocate for MAX_BUTTONS to avoid 7+ reallocs during load.
-    // std::vector doubles its capacity each time — without reserve(), loading
+    // std::vector doubles its capacity each time - without reserve(), loading
     // 100 buttons triggers log2(100)≈7 realloc+copy cycles on the heap.
     _buttons.reserve(MAX_BUTTONS);
     _nextId  = 1;
@@ -74,13 +74,13 @@ bool IRDatabase::begin() {
     f.close();
 
     if (err != DeserializationError::Ok) {
-        Serial.printf(DEBUG_TAG " DB parse error: %s — starting fresh.\n",
+        Serial.printf(DEBUG_TAG " DB parse error: %s - starting fresh.\n",
                       err.c_str());
         return false;
     }
 
     if (!doc["buttons"].is<JsonArrayConst>()) {
-        Serial.println(DEBUG_TAG " DB has no 'buttons' array — starting fresh.");
+        Serial.println(DEBUG_TAG " DB has no 'buttons' array - starting fresh.");
         return false;
     }
 
@@ -187,7 +187,7 @@ bool IRDatabase::save() {
     totalWritten += 2;
     f.close();
 
-    // Atomic rename — prevents partial-write corruption on power loss
+    // Atomic rename - prevents partial-write corruption on power loss
     LittleFS.remove(DB_FILE);
     if (!LittleFS.rename(tmpFile, DB_FILE)) {
         Serial.println(DEBUG_TAG " ERROR: DB rename failed.");
@@ -219,9 +219,9 @@ uint32_t IRDatabase::add(IRButton& btn) {
         return 0;
     }
 
-    // Fix 3: RAW memory guard — cap RAW buttons independently
+    // Fix 3: RAW memory guard - cap RAW buttons independently
     if (btn.protocol == IRProtocol::RAW && _rawCount() >= MAX_RAW_BUTTONS) {
-        Serial.printf(DEBUG_TAG " ERROR: RAW button limit (%d) reached — "
+        Serial.printf(DEBUG_TAG " ERROR: RAW button limit (%d) reached - "
                       "delete an existing RAW button first.\n", MAX_RAW_BUTTONS);
         return 0;
     }
@@ -233,7 +233,7 @@ uint32_t IRDatabase::add(IRButton& btn) {
     xSemaphoreGive(_mux);
     btn.id = newid;
 
-    // push_back OUTSIDE spinlock — IRButton contains String/vector
+    // push_back OUTSIDE spinlock - IRButton contains String/vector
     // whose heap allocations must not run with interrupts disabled.
     _buttons.push_back(btn);
     _rebuildIndex();   // FIX: O(1) lookups valid immediately after add
@@ -301,7 +301,7 @@ bool IRDatabase::remove(uint32_t id) {
 }
 
 // ── _rebuildIndex ─────────────────────────────────────────────
-// O(N) rebuild — called only after mutations (add/update/remove/import/clear).
+// O(N) rebuild - called only after mutations (add/update/remove/import/clear).
 // Amortises to O(1) per lookup. With MAX_BUTTONS=200 the rebuild takes ~50μs.
 void IRDatabase::_rebuildIndex() {
     _idIndex.clear();
@@ -314,7 +314,7 @@ void IRDatabase::_rebuildIndex() {
     }
 }
 
-// ── findById — O(1) via hash map ─────────────────────────────
+// ── findById - O(1) via hash map ─────────────────────────────
 IRButton IRDatabase::findById(uint32_t id) const {
     IRButton copy;
     xSemaphoreTake(_mux, portMAX_DELAY);
@@ -326,7 +326,7 @@ IRButton IRDatabase::findById(uint32_t id) const {
     return copy;
 }
 
-// ── findByName — O(1) via hash map ───────────────────────────
+// ── findByName - O(1) via hash map ───────────────────────────
 IRButton IRDatabase::findByName(const String& name) const {
     IRButton copy;
     xSemaphoreTake(_mux, portMAX_DELAY);
@@ -348,12 +348,12 @@ IRButton IRDatabase::findByName(const String& name) const {
 uint32_t IRDatabase::autoSaveReceived(IRButton& btn) {
     if (!_autoSave) return 0;
 
-    // RAW signals have code == 0 — each capture is unique by
+    // RAW signals have code == 0 - each capture is unique by
     // definition, so skip the duplicate check for RAW.
     if (btn.protocol != IRProtocol::RAW) {
         for (const auto& b : _buttons) {
             if (b.protocol == btn.protocol && b.code == btn.code) {
-                // Duplicate — silently ignore
+                // Duplicate - silently ignore
                 return 0;
             }
         }
@@ -460,7 +460,7 @@ bool IRDatabase::importJson(const String& json) {
     _buttons = std::move(imported);
     _nextId  = maxId + 1;
     xSemaphoreGive(_mux);
-    // 'old' destructs here — heap free is safe outside the spinlock
+    // 'old' destructs here - heap free is safe outside the spinlock
 
     _rebuildIndex();   // FIX: new index for imported buttons
 
@@ -487,7 +487,7 @@ void IRDatabase::clear() {
 
 // ── backup ───────────────────────────────────────────────────
 // Writes the current live DB to DB_BACKUP_FILE using the same
-// streaming strategy as save() — one button at a time so peak
+// streaming strategy as save() - one button at a time so peak
 // RAM stays at ~1 IRButton regardless of database size.
 bool IRDatabase::backup() {
     // Snapshot IDs under lock; serialise outside
@@ -552,7 +552,7 @@ IRDatabase::validateRestoreJson(const String& json) const {
     DeserializationError err = deserializeJson(doc, json);
     if (err != DeserializationError::Ok) {
         res.error = String("JSON parse error: ") + err.c_str();
-        Serial.printf(DEBUG_TAG " [Restore] Validation FAILED — %s\n",
+        Serial.printf(DEBUG_TAG " [Restore] Validation FAILED - %s\n",
                       res.error.c_str());
         return res;
     }
@@ -560,16 +560,16 @@ IRDatabase::validateRestoreJson(const String& json) const {
     // ── 2. Structure ──────────────────────────────────────────
     if (!doc["buttons"].is<JsonArrayConst>()) {
         res.error = "Missing top-level 'buttons' array";
-        Serial.println(DEBUG_TAG " [Restore] Validation FAILED — " + res.error);
+        Serial.println(DEBUG_TAG " [Restore] Validation FAILED - " + res.error);
         return res;
     }
 
     JsonArrayConst arr = doc["buttons"].as<JsonArrayConst>();
     if (arr.size() == 0) {
-        // Empty array is technically valid — allow it (restores to blank DB)
+        // Empty array is technically valid - allow it (restores to blank DB)
         res.ok       = true;
         res.accepted = 0;
-        Serial.println(DEBUG_TAG " [Restore] Validation OK — empty buttons array");
+        Serial.println(DEBUG_TAG " [Restore] Validation OK - empty buttons array");
         return res;
     }
 
@@ -593,7 +593,7 @@ IRDatabase::validateRestoreJson(const String& json) const {
     if (res.accepted == 0) {
         res.error = String("No valid buttons found (") +
                     res.rejected + " rejected)";
-        Serial.println(DEBUG_TAG " [Restore] Validation FAILED — " + res.error);
+        Serial.println(DEBUG_TAG " [Restore] Validation FAILED - " + res.error);
         return res;
     }
 
@@ -601,12 +601,12 @@ IRDatabase::validateRestoreJson(const String& json) const {
     if (rawCount > MAX_RAW_BUTTONS) {
         res.error = String("Too many RAW buttons (") + rawCount +
                     "), max allowed: " + MAX_RAW_BUTTONS;
-        Serial.println(DEBUG_TAG " [Restore] Validation FAILED — " + res.error);
+        Serial.println(DEBUG_TAG " [Restore] Validation FAILED - " + res.error);
         return res;
     }
 
     res.ok = true;
-    Serial.printf(DEBUG_TAG " [Restore] Validation OK — accepted=%u rejected=%u"
+    Serial.printf(DEBUG_TAG " [Restore] Validation OK - accepted=%u rejected=%u"
                   " raw=%u\n", res.accepted, res.rejected, rawCount);
     return res;
 }
@@ -615,30 +615,30 @@ IRDatabase::validateRestoreJson(const String& json) const {
 // Full pipeline: validate → backup → importJson (atomic swap).
 // The live DB is never touched if validation fails.
 IRDatabase::RestoreResult IRDatabase::restore(const String& json) {
-    // Step 1 — validate before touching anything
+    // Step 1 - validate before touching anything
     RestoreResult res = validateRestoreJson(json);
     if (!res.ok) return res;
 
-    // Step 2 — backup current DB so the user can undo
+    // Step 2 - backup current DB so the user can undo
     if (!backup()) {
-        // Backup failure is non-fatal — warn but continue.
+        // Backup failure is non-fatal - warn but continue.
         // Losing the backup is better than refusing a valid restore.
-        Serial.println(DEBUG_TAG " [Restore] WARNING: backup() failed — "
+        Serial.println(DEBUG_TAG " [Restore] WARNING: backup() failed - "
                        "proceeding without backup.");
         res.error = "WARNING: backup failed (restore proceeded anyway)";
     }
 
-    // Step 3 — atomic swap via importJson
-    // importJson() validates again internally; this is intentional —
+    // Step 3 - atomic swap via importJson
+    // importJson() validates again internally; this is intentional -
     // it re-checks after backup so the live DB is always consistent.
     if (!importJson(json)) {
         res.ok    = false;
-        res.error = "importJson() failed after backup — live DB unchanged";
+        res.error = "importJson() failed after backup - live DB unchanged";
         Serial.println(DEBUG_TAG " [Restore] ERROR: " + res.error);
         return res;
     }
 
-    Serial.printf(DEBUG_TAG " [Restore] SUCCESS — %u button(s) loaded, "
+    Serial.printf(DEBUG_TAG " [Restore] SUCCESS - %u button(s) loaded, "
                   "%u skipped\n", res.accepted, res.rejected);
     return res;
 }

@@ -22,7 +22,7 @@ void Nrf24Module::setEnabled(bool en) {
         if (_radio) { delete _radio; _radio = nullptr; }
         if (_spi)   { _spi->end(); delete _spi; _spi = nullptr; }
         _hwConnected = false;
-        Serial.println("[NRF24] Disabled — SPI released, radio powered down");
+        Serial.println("[NRF24] Disabled - SPI released, radio powered down");
     } else {
         // begin() already handles null check and fresh init
         begin();
@@ -41,10 +41,10 @@ void Nrf24Module::begin() {
     _spi = (_cfg.spiBus == 1)
         ? new SPIClass(HSPI)
         : new SPIClass(VSPI);
-    // DO NOT pass CSN as SS to SPI.begin — RF24 manages CSN via digitalWrite.
+    // DO NOT pass CSN as SS to SPI.begin - RF24 manages CSN via digitalWrite.
     // Passing CSN here causes the SPI hardware to also drive it, creating conflicts.
     _spi->begin(_cfg.sck, _cfg.miso, _cfg.mosi, _cfg.csn);
-    _spi->setFrequency(10000000);  // 10 MHz — NRF24L01 max SPI clock
+    _spi->setFrequency(10000000);  // 10 MHz - NRF24L01 max SPI clock
 
     // CE and CSN must be OUTPUT before RF24::begin()
     pinMode(_cfg.ce,  OUTPUT); digitalWrite(_cfg.ce,  LOW);
@@ -64,15 +64,15 @@ void Nrf24Module::begin() {
                       _hwConnected?"YES":"NO (SPI OK but no NRF24 response)");
     } else {
         _hwConnected = false;
-        Serial.println(NRF24_TAG " RF24::begin failed — check CE/CSN/SPI wiring");
+        Serial.println(NRF24_TAG " RF24::begin failed - check CE/CSN/SPI wiring");
     }
 
     if (_hwConnected) {
         _applyConfig();
-        Serial.printf(NRF24_TAG " Connected — CE=%u CSN=%u ch=%u\n",
+        Serial.printf(NRF24_TAG " Connected - CE=%u CSN=%u ch=%u\n",
                       _cfg.ce, _cfg.csn, _channel);
     } else {
-        Serial.println(NRF24_TAG " Not detected — verify: CE/CSN not swapped, 3.3V power, 100uF cap on VCC");
+        Serial.println(NRF24_TAG " Not detected - verify: CE/CSN not swapped, 3.3V power, 100uF cap on VCC");
     }
 }
 
@@ -104,7 +104,7 @@ void Nrf24Module::loop() {
     // Old code: 125 channels × delayMicroseconds(128) = 16 ms blocked per call.
     // hw_poll runs on a 20 ms vTaskDelayUntil() tick, so the old scan
     // consumed 80% of hw_poll's budget, starving NFC/RFID/SubGHz.
-    // New code: 10 channels × 128 µs = 1.28 ms per tick — ~12x improvement.
+    // New code: 10 channels × 128 µs = 1.28 ms per tick - ~12x improvement.
     // A full 125-channel sweep completes in 13 loop() ticks (~260 ms) instead
     // of being one atomic 16 ms block. Results are equally accurate.
 #define NRF24_SCAN_CHUNK 10

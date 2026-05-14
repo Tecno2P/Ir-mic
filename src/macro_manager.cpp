@@ -171,7 +171,7 @@ bool MacroManager::remove(const String& name) {
 // ── run ──────────────────────────────────────────────────────
 bool MacroManager::run(const String& name) {
     if (_running) {
-        Serial.println(DEBUG_TAG " [Macro] Already running — abort first");
+        Serial.println(DEBUG_TAG " [Macro] Already running - abort first");
         return false;
     }
     String label;

@@ -5,22 +5,22 @@
 //  Ek rule = ek trigger condition + ek ya zyada actions
 //
 //  TRIGGERS (IF):
-//    RFID_SCAN      — koi specific card scan ho
-//    RFID_UNKNOWN   — unknown card scan ho
-//    NFC_SCAN       — NFC tag detect ho
-//    IR_RECEIVED    — specific IR signal receive ho
-//    SCHEDULE       — time-based (uses existing scheduler)
-//    WIFI_CONNECT   — WiFi connect ho
-//    WIFI_DISCONNECT— WiFi disconnect ho
-//    BOOT           — device start ho
-//    MANUAL         — web UI / REST API se manually fire karo
+//    RFID_SCAN      - koi specific card scan ho
+//    RFID_UNKNOWN   - unknown card scan ho
+//    NFC_SCAN       - NFC tag detect ho
+//    IR_RECEIVED    - specific IR signal receive ho
+//    SCHEDULE       - time-based (uses existing scheduler)
+//    WIFI_CONNECT   - WiFi connect ho
+//    WIFI_DISCONNECT- WiFi disconnect ho
+//    BOOT           - device start ho
+//    MANUAL         - web UI / REST API se manually fire karo
 //
 //  ACTIONS (THEN):
-//    IR_TRANSMIT    — IR signal bhejo
-//    MACRO_RUN      — macro chalao
-//    NOTIFY         — notification/log message
-//    BUZZER         — buzzer beep karo
-//    LOG            — sirf audit log mein likhoo
+//    IR_TRANSMIT    - IR signal bhejo
+//    MACRO_RUN      - macro chalao
+//    NOTIFY         - notification/log message
+//    BUZZER         - buzzer beep karo
+//    LOG            - sirf audit log mein likhoo
 //
 //  Example Rule:
 //    IF RFID_UNKNOWN → THEN NOTIFY + BUZZER
@@ -111,7 +111,7 @@ public:
     void begin();   // create /rules dir, load all rules
     void loop();    // execute pending deferred actions
 
-    // ── Trigger events — called from main modules ─────────────
+    // ── Trigger events - called from main modules ─────────────
     void triggerRfidScan    (const String& uid, const String& cardName, bool known);
     void triggerNfcScan     (const String& uid, const String& tagName);
     void triggerIrReceived  (uint32_t buttonId, const String& protocol);

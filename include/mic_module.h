@@ -77,7 +77,7 @@ public:
     // Compat wrappers (old API)
     void          saveGpioConfig(const MicConfig& cfg) { saveConfig(cfg); }
     MicConfig     loadGpioConfig() const               { return loadConfig(); }
-    // NOTE: applyConfig(const MicGpioConfig&) intentionally removed —
+    // NOTE: applyConfig(const MicGpioConfig&) intentionally removed -
     // MicGpioConfig is a typedef alias for MicConfig, so they resolve to
     // the same signature and cause an overload conflict in C++.
 

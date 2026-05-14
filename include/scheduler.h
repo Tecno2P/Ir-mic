@@ -11,8 +11,8 @@
 //    + Persisted in /schedules.json
 //
 //  v2.2.0 (Upgrade 3):
-//    + repeatCount — how many times to fire IR on schedule trigger
-//    + repeatDelay — ms between repeat fires (0 = use button default)
+//    + repeatCount - how many times to fire IR on schedule trigger
+//    + repeatDelay - ms between repeat fires (0 = use button default)
 // ============================================================
 #include <Arduino.h>
 #include <vector>
@@ -106,7 +106,7 @@ public:
 
     const std::vector<ScheduleEntry>& entries() const { return _entries; }
 
-    // Callback — set before begin()
+    // Callback - set before begin()
     // v2.2.0: callback now receives full ScheduleEntry so caller can
     // honour repeatCount / repeatDelay at the schedule level.
     using FireCallback = std::function<void(const ScheduleEntry&)>;

@@ -10,7 +10,7 @@ AuthManager authMgr;
 AuthManager::AuthManager()
     : _enabled(false), _firstLogin(true),
       _username("admin"), _failCount(0), _lockedUntil(0) {
-    // S-01 FIX: default password derived from chip MAC — unique per device.
+    // S-01 FIX: default password derived from chip MAC - unique per device.
     // Replaces hardcoded "irremote123" which was identical across all units.
     // Format: "IR-" + last 3 MAC octets, e.g. "IR-A1B2C3".
     // begin() will call loadConfig() which overwrites this with the saved hash
@@ -147,7 +147,7 @@ bool AuthManager::loadConfig() {
     // instead of falling back to the hardcoded "irremote123".
     if (doc["passHash"].is<const char*>()) {
         _passwordHash = doc["passHash"].as<String>();
-        _defaultPass  = "";   // saved config found — suppress first-boot print
+        _defaultPass  = "";   // saved config found - suppress first-boot print
     }
     // else: keep _passwordHash and _defaultPass from constructor (MAC-derived)
     return true;

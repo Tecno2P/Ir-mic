@@ -27,7 +27,7 @@ struct SubGhzGpioConfig {
     // HSPI bus to avoid conflict with SD card (VSPI: SCK=18,MOSI=23,MISO=19)
     uint8_t sck    = 14;   // HSPI SCK
     uint8_t mosi   = 13;   // HSPI MOSI
-    uint8_t miso   = 26;   // HSPI MISO (GPIO12 forbidden at boot — use 26, shares IR TX-1 mutually exclusive)
+    uint8_t miso   = 26;   // HSPI MISO (GPIO12 forbidden at boot - use 26, shares IR TX-1 mutually exclusive)
     uint8_t spiBus = 1;    // 1=HSPI (SD uses VSPI)
 };
 

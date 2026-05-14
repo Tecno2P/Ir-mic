@@ -31,9 +31,9 @@ struct NfcGpioConfig {
     uint8_t  spiBus = 0;    // 0=VSPI, 1=HSPI (SPI mode only)
     uint8_t  sda   = 21;
     uint8_t  scl   = 22;
-    uint8_t  irq   = 13;   // GPIO4 conflicts with SD CS — moved to GPIO13 (interrupt input, safe to share)
-    uint8_t  reset = 13;   // GPIO33 conflicts with IR TX-3 — moved to GPIO13 (init-only pulse)
-    uint8_t  ss    = 13;   // GPIO5 forbidden (boot HIGH strapping) — moved to GPIO13
+    uint8_t  irq   = 13;   // GPIO4 conflicts with SD CS - moved to GPIO13 (interrupt input, safe to share)
+    uint8_t  reset = 13;   // GPIO33 conflicts with IR TX-3 - moved to GPIO13 (init-only pulse)
+    uint8_t  ss    = 13;   // GPIO5 forbidden (boot HIGH strapping) - moved to GPIO13
     uint8_t  sck   = 18;
     uint8_t  mosi  = 23;
     uint8_t  miso  = 19;
@@ -114,7 +114,7 @@ private:
     unsigned long _pollTimer   = 0;
     String        _dictPending;
 
-    void*         _nfc = nullptr;   // Adafruit_PN532* — heap allocated
+    void*         _nfc = nullptr;   // Adafruit_PN532* - heap allocated
 
     std::vector<NfcTag> _tags;
 

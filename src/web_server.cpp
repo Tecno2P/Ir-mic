@@ -1,6 +1,6 @@
 // ============================================================
 //  web_server.cpp  –  Async HTTP + WebSocket + All API routes
-//  v2.1.0 — smoothness fixes applied
+//  v2.1.0 - smoothness fixes applied
 // ============================================================
 #include "web_server.h"
 #include "ir_database.h"
@@ -24,13 +24,13 @@
 #include "system_module.h"
 #include "audit_manager.h"   // Batch 1: Audit Trail
 #include "auth_manager.h"    // Batch 3: Authentication
-#include "watchdog_manager.h" // Ultra Pro Watchdog — status fields
+#include "watchdog_manager.h" // Ultra Pro Watchdog - status fields
 #include <ctime>          // time(), localtime_r() for SD backup timestamps
 
 WebUI webUI;
 
 // ── Helpers ───────────────────────────────────────────────────
-// FIX: sendJson now uses AsyncResponseStream — writes directly to TCP send buffer.
+// FIX: sendJson now uses AsyncResponseStream - writes directly to TCP send buffer.
 // The old version built a String copy of 'json' and then copied it again into
 // the response buffer (two allocations). AsyncResponseStream eliminates both.
 static void sendJson(AsyncWebServerRequest* req, int code, const String& json) {
@@ -41,13 +41,13 @@ static void sendJson(AsyncWebServerRequest* req, int code, const String& json) {
     req->send(r);
 }
 
-// Convenience overload: serialize a JsonDocument directly to stream — zero String alloc.
+// Convenience overload: serialize a JsonDocument directly to stream - zero String alloc.
 // Use this for all new handlers: sendJsonDoc(req, 200, doc)
 static void sendJsonDoc(AsyncWebServerRequest* req, int code, const JsonDocument& doc) {
     AsyncResponseStream* r = req->beginResponseStream("application/json");
     r->setCode(code);
     r->addHeader("Access-Control-Allow-Origin", "*");
-    serializeJson(doc, *r);   // writes directly to TCP buffer — no intermediate String
+    serializeJson(doc, *r);   // writes directly to TCP buffer - no intermediate String
     req->send(r);
 }
 
@@ -100,7 +100,7 @@ static void freeBodyBuf(AsyncWebServerRequest* req) {
 
 // ── Constructor / begin / loop ────────────────────────────────
 WebUI::WebUI() : _server(HTTP_PORT), _ws(WS_PATH) {
-    // FIX: create FreeRTOS mutex for WS queue — replaces portMUX spinlock
+    // FIX: create FreeRTOS mutex for WS queue - replaces portMUX spinlock
     _wsMutex = xSemaphoreCreateMutex();
     if (!_wsMutex) {
         Serial.println(DEBUG_TAG " FATAL: WS mutex creation failed");
@@ -130,13 +130,13 @@ void WebUI::begin() {
     setupOtaImprovedRoutes(); // Batch 3: OTA version check
     setupWatchdogRoutes(); // Batch 3: Self-Healing Watchdog
     setupLogRoutes();      // Batch 4: Log Rotation + CSV Export
-    setupStaticRoutes();   // must be last — catch-all
+    setupStaticRoutes();   // must be last - catch-all
     _server.begin();
     Serial.printf(DEBUG_TAG " HTTP server on port %d\n", HTTP_PORT);
 }
 
 void WebUI::loop() {
-    // cleanupClients iterates all WS client slots — rate-limit to every 5s.
+    // cleanupClients iterates all WS client slots - rate-limit to every 5s.
     // Disconnected clients are removed lazily; no correctness impact.
     unsigned long now = millis();
     if (now - _lastWsCleanup >= 5000UL) {
@@ -148,7 +148,7 @@ void WebUI::loop() {
 }
 
 void WebUI::_flushWsQueue() {
-    // FIX: If no clients, drain queue immediately to free heap — avoids
+    // FIX: If no clients, drain queue immediately to free heap - avoids
     // accumulating up to WS_QUEUE_MAX String objects nobody will receive.
     if (_ws.count() == 0) {
         if (_wsMutex && xSemaphoreTake(_wsMutex, 0) == pdTRUE) {
@@ -158,7 +158,7 @@ void WebUI::_flushWsQueue() {
         return;
     }
 
-    // Drain at most 8 messages per loop() call — doubled from 4 to reduce
+    // Drain at most 8 messages per loop() call - doubled from 4 to reduce
     // queue backlog during IR auto-save bursts and multi-button scans.
     // Worst case: 8 × ~2ms textAll() = ~16ms per loop tick, still acceptable.
     int budget = 8;
@@ -180,8 +180,8 @@ void WebUI::_flushWsQueue() {
 }
 
 // FIX: _pushWsMessage uses FreeRTOS mutex instead of portENTER_CRITICAL.
-// String copy (heap alloc) happens before lock — same as before.
-// std::queue::push() can realloc its internal deque — safe only outside
+// String copy (heap alloc) happens before lock - same as before.
+// std::queue::push() can realloc its internal deque - safe only outside
 // portENTER_CRITICAL because portENTER_CRITICAL disables interrupts and
 // ESP-IDF heap_caps_malloc also takes a spinlock → deadlock.
 void WebUI::_pushWsMessage(const String& msg) {
@@ -207,7 +207,7 @@ void WebUI::onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
     (void)server;
     switch (type) {
         case WS_EVT_CONNECT:
-            // FIX: evict stale clients before accepting new one — prevents
+            // FIX: evict stale clients before accepting new one - prevents
             // ghost-client heap accumulation from unreachable textAll() frames.
             server->cleanupClients(WS_MAX_CLIENTS);
             Serial.printf(DEBUG_TAG " WS #%u connected (active: %u)\n",
@@ -243,7 +243,7 @@ void WebUI::onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
 
 // ── Static / fallback routes ──────────────────────────────────
 void WebUI::setupStaticRoutes() {
-    // ── favicon — suppress "does not exist" log spam ──────────
+    // ── favicon - suppress "does not exist" log spam ──────────
     _server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest* req) {
         if (LittleFS.exists("/favicon.ico"))
             req->send(LittleFS, "/favicon.ico", "image/x-icon");
@@ -253,7 +253,7 @@ void WebUI::setupStaticRoutes() {
 
 
 
-    // ── / and /index.html — serve gzip-compressed if available ──
+    // ── / and /index.html - serve gzip-compressed if available ──
     // index.html.gz is ~78% smaller (57KB vs 270KB), critical for LittleFS space.
     // All modern browsers support gzip Content-Encoding transparently.
     auto serveIndex = [](AsyncWebServerRequest* req) {
@@ -261,7 +261,7 @@ void WebUI::setupStaticRoutes() {
             // Check if client accepts gzip (virtually all browsers do)
             String ae = req->header("Accept-Encoding");
             if (ae.indexOf("gzip") >= 0) {
-                // Serve gzip-compressed file — browser decompresses transparently
+                // Serve gzip-compressed file - browser decompresses transparently
                 AsyncWebServerResponse* r = req->beginResponse(
                     LittleFS, "/index.html.gz", "text/html");
                 r->addHeader("Content-Encoding", "gzip");
@@ -270,11 +270,11 @@ void WebUI::setupStaticRoutes() {
                 r->addHeader("Pragma", "no-cache");
                 req->send(r);
             } else {
-                // Rare: client doesn't accept gzip — decompress in RAM and send
+                // Rare: client doesn't accept gzip - decompress in RAM and send
                 // (only ~57KB to decompress; fits in ESP32 heap)
                 File f = LittleFS.open("/index.html.gz", "r");
                 if (f) {
-                    // Can't decompress on ESP32 easily — redirect to fallback OTA page
+                    // Can't decompress on ESP32 easily - redirect to fallback OTA page
                     f.close();
                 }
                 // Fallback: serve as-is with gzip header anyway
@@ -292,13 +292,13 @@ void WebUI::setupStaticRoutes() {
             r->addHeader("Pragma", "no-cache");
             req->send(r);
         } else {
-            // Friendly OTA upload page — user can flash littlefs.bin
+            // Friendly OTA upload page - user can flash littlefs.bin
             // directly from the browser without USB/esptool.
             req->send(200, "text/html",
                 "<!DOCTYPE html><html><head>"
                 "<meta charset='UTF-8'/>"
                 "<meta name='viewport' content='width=device-width,initial-scale=1'/>"
-                "<title>IR Remote " FIRMWARE_VERSION " — Web UI Setup</title>"
+                "<title>IR Remote " FIRMWARE_VERSION " - Web UI Setup</title>"
                 "<style>"
                 "*{box-sizing:border-box;margin:0;padding:0}"
                 "body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;"
@@ -338,7 +338,7 @@ void WebUI::setupStaticRoutes() {
                 "<div class='badge'>IR Remote v" FIRMWARE_VERSION "</div>"
                 "<h1>&#128190; Flash Web UI</h1>"
                 "<p class='sub'>Firmware is running. Upload <strong>littlefs.bin</strong>"
-                " below to complete setup — no USB cable needed.</p>"
+                " below to complete setup - no USB cable needed.</p>"
                 "<div class='drop' id='drop' onclick=\"document.getElementById('f').click()\">"
                 "<div class='drop-icon'>&#128193;</div>"
                 "<div class='drop-label'>Click or drag <code>littlefs.bin</code> here</div>"
@@ -404,7 +404,7 @@ void WebUI::setupStaticRoutes() {
     _server.on("/index.htm",  HTTP_GET, serveIndex);
 
     // serveStatic for all other assets (css, js, images if any).
-    // Does NOT handle "/" itself — our specific handler above takes priority.
+    // Does NOT handle "/" itself - our specific handler above takes priority.
     // setDefaultFile("index.html.gz") ensures any sub-path also serves the SPA.
     _server.serveStatic("/", LittleFS, "/")
            .setCacheControl("max-age=600")
@@ -429,12 +429,12 @@ void WebUI::setupStaticRoutes() {
 }
 void WebUI::setupOtaRoutes() {
     // Clear OTA error state (allows retry without reboot)
-    // Returns 409 if a restart is already pending — caller should not retry.
+    // Returns 409 if a restart is already pending - caller should not retry.
     _server.on("/api/ota/clear", HTTP_POST,
         [](AsyncWebServerRequest* req) {
             if (!authMgr.checkAuth(req)) return;
             if (otaMgr.restartPending()) {
-                sendJson(req, 409, "{\"ok\":false,\"note\":\"Reboot already pending — do not retry\"}");
+                sendJson(req, 409, "{\"ok\":false,\"note\":\"Reboot already pending - do not retry\"}");
                 return;
             }
             otaMgr.clearError();
@@ -444,7 +444,7 @@ void WebUI::setupOtaRoutes() {
     _server.on("/api/ota/update", HTTP_POST,
         [](AsyncWebServerRequest* req) {
             if (!authMgr.checkAuth(req)) return;
-            // FIX: Check restartPending FIRST — it is set only by finishUpdate()
+            // FIX: Check restartPending FIRST - it is set only by finishUpdate()
             // which means Update.end() succeeded and the image was committed.
             // Checking lastError alone was insufficient: if Update.end() failed
             // silently, lastError would be empty but restartPending = false,
@@ -553,7 +553,7 @@ void WebUI::setupApiRoutes() {
         ([this](AsyncWebServerRequest* req, uint8_t* d, size_t l){
             handleSetConfig(req, d, l); }));
 
-    // GET /api/ping — dead-simple connectivity check, no auth/LittleFS needed
+    // GET /api/ping - dead-simple connectivity check, no auth/LittleFS needed
     _server.on("/api/ping", HTTP_GET, [](AsyncWebServerRequest* req) {
         String body = String("{\"ok\":true,\"firmware\":\"")
                     + FIRMWARE_VERSION
@@ -728,11 +728,11 @@ void WebUI::handleTransmit(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
         if (doc["repeatCount"].is<int>()) copy.repeatCount = doc["repeatCount"].as<uint8_t>();
         if (doc["repeatDelay"].is<int>()) copy.repeatDelay = doc["repeatDelay"].as<uint16_t>();
         if (doc["emitterIdx"].is<int>()) {
-            // transmitOn is blocking but user-requested specific emitter — keep synchronous
+            // transmitOn is blocking but user-requested specific emitter - keep synchronous
             // so response reflects actual TX result
             ok = irTransmitter.transmitOn(doc["emitterIdx"].as<uint8_t>(), copy);
         } else {
-            // FIX: use transmitAsync — this handler runs in AsyncTCP task on Core 0.
+            // FIX: use transmitAsync - this handler runs in AsyncTCP task on Core 0.
             // Blocking transmit() here would freeze all HTTP/WS handling during TX.
             ok = irTransmitter.transmitAsync(copy);
         }
@@ -793,7 +793,7 @@ void WebUI::handlePwmTest(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
         ? String("NEC AGC burst transmitted at ") + freqKHz +
           " kHz carrier via ESP32 ledc hardware PWM (" +
           (int)irTransmitter.activeCount() + " emitter(s) active)"
-        : "No active emitters — configure TX GPIO in Settings → GPIO first";
+        : "No active emitters - configure TX GPIO in Settings → GPIO first";
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
     String out;
@@ -815,7 +815,7 @@ void WebUI::handlePwmInfo(AsyncWebServerRequest* req) {
     doc["freqKhzMax"]        = 60;   // ESP32 ledc upper bound for IR use
     doc["freqKhzCommon"]     = "36, 38, 40, 56";
     doc["pwmResolutionBits"] = 8;    // IRremoteESP8266 ledcSetup() resolution
-    doc["pwmDutyCycle"]      = 128;  // 128/255 ≈ 50% — standard for IR emitters
+    doc["pwmDutyCycle"]      = 128;  // 128/255 ≈ 50% - standard for IR emitters
     doc["pwmDriver"]         = "ESP32 ledc hardware (no bitbanging)";
     doc["cpuFreqMHz"]        = (uint32_t)getCpuFrequencyMhz();   // real runtime value
     doc["emitterCount"]      = (int)irTransmitter.activeCount();  // real active count
@@ -894,9 +894,9 @@ void WebUI::handleSetConfig(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
     bool staChanged = doc["staSSID"].is<const char*>() || doc["staEnabled"].is<bool>() || doc["staPass"].is<const char*>();
     if (staChanged) {
         wifiMgr.applyStaConfig();
-        sendJson(req,200,"{\"ok\":true,\"note\":\"STA reconnecting — AP stays up\"}");
+        sendJson(req,200,"{\"ok\":true,\"note\":\"STA reconnecting - AP stays up\"}");
     } else {
-        sendJson(req,200,"{\"ok\":true,\"note\":\"AP settings saved — restart to apply\"}");
+        sendJson(req,200,"{\"ok\":true,\"note\":\"AP settings saved - restart to apply\"}");
     }
 }
 
@@ -914,7 +914,7 @@ void WebUI::handleGetStatus(AsyncWebServerRequest* req) {
     doc["totalHeap"]     = totalHeap;
     doc["minFreeHeap"]   = minEver;       // lowest heap ever (proxy for worst fragmentation)
     doc["maxAllocBlock"] = maxBlock;      // largest single allocatable block right now
-    doc["heapFrag"]      = fragPct;       // fragmentation % — 0=perfect, >40=degraded
+    doc["heapFrag"]      = fragPct;       // fragmentation % - 0=perfect, >40=degraded
     doc["heapUsed"]      = totalHeap - freeHeap;
     doc["heapUsedPct"]   = (uint8_t)((totalHeap - freeHeap) * 100u / totalHeap);
 
@@ -928,7 +928,7 @@ void WebUI::handleGetStatus(AsyncWebServerRequest* req) {
     doc["coreId"]        = xPortGetCoreID();
 
     // Task watermarks (stack health monitoring)
-    // uxTaskGetStackHighWaterMark returns words remaining — multiply by 4 for bytes
+    // uxTaskGetStackHighWaterMark returns words remaining - multiply by 4 for bytes
     doc["loopStackFree"] = (uint32_t)(uxTaskGetStackHighWaterMark(NULL) * 4);
 
     // Wi-Fi
@@ -1049,7 +1049,7 @@ void WebUI::handleDeleteGroup(AsyncWebServerRequest* req) {
     std::vector<uint32_t> toFix;
     {
         // Collect IDs via findById-safe iteration: take a snapshot first.
-        // irDB.buttons() returns a const ref — safe to read here since all
+        // irDB.buttons() returns a const ref - safe to read here since all
         // DB mutations happen on the same async-TCP task, but we still
         // collect IDs before calling update() to avoid iterator invalidation.
         const auto& all = irDB.buttons();
@@ -1179,7 +1179,7 @@ void WebUI::handleGetAutoSave(AsyncWebServerRequest* req) {
 
 void WebUI::handleSetAutoSave(AsyncWebServerRequest* req) {
     if (!req->hasParam("enabled")) {
-        sendJson(req, 400, "{\"error\":\"Missing 'enabled' param — use ?enabled=true or ?enabled=false\"}");
+        sendJson(req, 400, "{\"error\":\"Missing 'enabled' param - use ?enabled=true or ?enabled=false\"}");
         return;
     }
     String val = req->getParam("enabled")->value();
@@ -1218,10 +1218,10 @@ void WebUI::handleBackupCreate(AsyncWebServerRequest* req) {
 // Downloads the backup file as an attachment.
 void WebUI::handleBackupDownload(AsyncWebServerRequest* req) {
     if (!irDB.hasBackup()) {
-        sendJson(req, 404, "{\"error\":\"No backup found — POST /api/backup first\"}");
+        sendJson(req, 404, "{\"error\":\"No backup found - POST /api/backup first\"}");
         return;
     }
-    // Stream directly from LittleFS — no String copy in RAM
+    // Stream directly from LittleFS - no String copy in RAM
     AsyncWebServerResponse* r = req->beginResponse(
         LittleFS, DB_BACKUP_FILE, "application/json");
     r->addHeader("Content-Disposition",
@@ -1256,7 +1256,7 @@ void WebUI::handleBackupStatus(AsyncWebServerRequest* req) {
 // Full pipeline: validate → backup current DB → atomic swap.
 void WebUI::handleRestore(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
     if (!authMgr.checkAuth(req)) return;
-    // Size guard — reject oversized bodies before any processing
+    // Size guard - reject oversized bodies before any processing
     if (l == 0) {
         sendJson(req, 400, "{\"error\":\"Empty body\"}");
         return;
@@ -1293,7 +1293,7 @@ void WebUI::handleRestore(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
 
 // ── Broadcasts ────────────────────────────────────────────────
 void WebUI::broadcastIREvent(const IRButton& btn) {
-    if (_ws.count() == 0) return;   // fast exit — no clients
+    if (_ws.count() == 0) return;   // fast exit - no clients
     JsonDocument doc;
     doc["event"]    = "ir_received";
     doc["protocol"] = protocolName(btn.protocol);
@@ -1317,13 +1317,13 @@ void WebUI::broadcastIREvent(const IRButton& btn) {
 
 void WebUI::broadcastMessage(const String& text) {
     if (_ws.count() == 0) return;
-    // FIX: fixed-size stack buffer — message events are always small (<200 bytes).
+    // FIX: fixed-size stack buffer - message events are always small (<200 bytes).
     // Avoids String heap alloc entirely for this high-frequency call.
     char buf[256];
     int n = snprintf(buf, sizeof(buf),
         "{\"event\":\"message\",\"message\":\"%s\"}", text.c_str());
     if (n > 0 && n < (int)sizeof(buf)) {
-        _ws.textAll(buf, (size_t)n);  // direct — skip queue for tiny messages
+        _ws.textAll(buf, (size_t)n);  // direct - skip queue for tiny messages
     }
 }
 
@@ -1355,11 +1355,11 @@ void WebUI::broadcastBinary(const uint8_t* data, size_t len) {
 }
 
 void WebUI::broadcastStatus() {
-    // FIX-1: skip entirely if no clients — avoids JsonDocument + String alloc
+    // FIX-1: skip entirely if no clients - avoids JsonDocument + String alloc
     // for nobody. Queue drain already happens in _flushWsQueue() when count==0.
     if (_ws.count() == 0) return;
 
-    // FIX-2: delta suppression — only serialize and broadcast when something
+    // FIX-2: delta suppression - only serialize and broadcast when something
     // actually changed. Saves ~15 function calls + JsonDocument every 5s.
     bool staConn  = wifiMgr.staConnected();
     int32_t rssi  = wifiMgr.staRSSI();
@@ -1382,7 +1382,7 @@ void WebUI::broadcastStatus() {
     _lastStatus = { staConn, rssi, ntpOk, sdMnt, macroRun, heap };
     _statusDirty = false;
 
-    // FIX: use IDF APIs — more reliable than Arduino's ESP.getFreeHeap()
+    // FIX: use IDF APIs - more reliable than Arduino's ESP.getFreeHeap()
     uint32_t maxBlock   = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
     uint32_t minEver    = esp_get_minimum_free_heap_size();
     uint8_t  fragPct    = (heap > 0) ? (uint8_t)(100u - (maxBlock * 100u / heap)) : 0;
@@ -1409,7 +1409,7 @@ void WebUI::broadcastStatus() {
     doc["macroName"]    = macroMgr.runningName();
     doc["macroStep"]    = macroMgr.runStep();
     doc["macroTotal"]   = macroMgr.runTotal();
-    // P-03 FIX: serialize directly into a static char buffer — zero heap allocation.
+    // P-03 FIX: serialize directly into a static char buffer - zero heap allocation.
     // broadcastStatus() is called up to 20x/minute; using String alloc/free 864K
     // times per 30 days was the leading cause of heap fragmentation on this device.
     // Static buffer is safe: _pushWsMessage() copies into the WS queue String,
@@ -1422,7 +1422,7 @@ void WebUI::broadcastStatus() {
 }
 
 // Push a pre-serialized JSON string to the WS queue without wrapping.
-// Safe to call from any FreeRTOS task — uses the same mutex-protected queue.
+// Safe to call from any FreeRTOS task - uses the same mutex-protected queue.
 void WebUI::broadcastRaw(const String& json) {
     _pushWsMessage(json);
 }
@@ -1500,7 +1500,7 @@ void WebUI::handleSetGpioPins(AsyncWebServerRequest* req, uint8_t* d, size_t l) 
         }
     }
 
-    // Apply all changes together — outside the emitters block so a
+    // Apply all changes together - outside the emitters block so a
     // RX-only change (no "emitters" key) is also committed.
     if (changed && !anyError) {
         pins = proposed;
@@ -1535,7 +1535,7 @@ void WebUI::handleGetPinList(AsyncWebServerRequest* req) {
     static const PinMeta META[] = {
         {4,  "GPIO4",  true,  true,  "General purpose"},
         {13, "GPIO13", true,  true,  "General purpose"},
-        {14, "GPIO14", true,  true,  "Default RX — PWM at boot"},
+        {14, "GPIO14", true,  true,  "Default RX - PWM at boot"},
         {16, "GPIO16", true,  true,  "General purpose"},
         {17, "GPIO17", true,  true,  "General purpose"},
         {18, "GPIO18", true,  true,  "SPI CLK (free if SPI unused)"},
@@ -1543,15 +1543,15 @@ void WebUI::handleGetPinList(AsyncWebServerRequest* req) {
         {21, "GPIO21", true,  true,  "I2C SDA (free if I2C unused)"},
         {22, "GPIO22", true,  true,  "I2C SCL (free if I2C unused)"},
         {23, "GPIO23", true,  true,  "SPI MOSI (free if SPI unused)"},
-        {25, "GPIO25", true,  true,  "DAC1 — general purpose"},
-        {26, "GPIO26", true,  true,  "DAC2 — general purpose"},
-        {27, "GPIO27", true,  true,  "Default TX — general purpose"},
+        {25, "GPIO25", true,  true,  "DAC1 - general purpose"},
+        {26, "GPIO26", true,  true,  "DAC2 - general purpose"},
+        {27, "GPIO27", true,  true,  "Default TX - general purpose"},
         {32, "GPIO32", true,  true,  "General purpose"},
         {33, "GPIO33", true,  true,  "General purpose"},
-        {34, "GPIO34", false, true,  "Input-only — RX only"},
-        {35, "GPIO35", false, true,  "Input-only — RX only"},
-        {36, "GPIO36", false, true,  "Input-only (SVP) — RX only"},
-        {39, "GPIO39", false, true,  "Input-only (SVN) — RX only"},
+        {34, "GPIO34", false, true,  "Input-only - RX only"},
+        {35, "GPIO35", false, true,  "Input-only - RX only"},
+        {36, "GPIO36", false, true,  "Input-only (SVP) - RX only"},
+        {39, "GPIO39", false, true,  "Input-only (SVN) - RX only"},
     };
     uint8_t curRx = irReceiver.activePin();
     for (const auto& m : META) {
@@ -1575,7 +1575,7 @@ void WebUI::handleGetPinList(AsyncWebServerRequest* req) {
 // ============================================================
 //  SD Card API Routes
 //  All routes return {"error":"SD not available"} gracefully
-//  when no SD card is inserted — no crashes, no broken UI.
+//  when no SD card is inserted - no crashes, no broken UI.
 // ============================================================
 
 // ── Inline helpers ────────────────────────────────────────────
@@ -1603,7 +1603,7 @@ void WebUI::setupMacroRoutes() {
         [this](AsyncWebServerRequest* req) { handleMacroStatus(req); });
 }
 
-// GET /api/macros — list all internal macros
+// GET /api/macros - list all internal macros
 void WebUI::handleMacroList(AsyncWebServerRequest* req) {
     auto list = macroMgr.list();
     JsonDocument doc;
@@ -1620,7 +1620,7 @@ void WebUI::handleMacroList(AsyncWebServerRequest* req) {
     sendJson(req, 200, out);
 }
 
-// GET /api/macro?name=x — read macro JSON
+// GET /api/macro?name=x - read macro JSON
 void WebUI::handleMacroRead(AsyncWebServerRequest* req) {
     if (!req->hasParam("name"))
         { sendJson(req,400,"{\"error\":\"Missing name\"}"); return; }
@@ -1643,7 +1643,7 @@ void WebUI::handleMacroRead(AsyncWebServerRequest* req) {
     sendJson(req, 200, out);
 }
 
-// POST /api/macro?name=x  body=JSON — save macro
+// POST /api/macro?name=x  body=JSON - save macro
 void WebUI::handleMacroSave(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
     if (!authMgr.checkAuth(req)) return;
     if (!req->hasParam("name"))
@@ -1919,7 +1919,7 @@ void WebUI::handleSdMkdir(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
 //
 // A File is heap-allocated so it outlives the handler stack frame.
 // ESPAsyncWebServer streams it asynchronously and calls onDisconnect
-// (or the response destructor) when done — we delete the File there.
+// (or the response destructor) when done - we delete the File there.
 void WebUI::handleSdDownload(AsyncWebServerRequest* req) {
     if (!sdMgr.isAvailable()) { sdNotAvail(req); return; }
     if (!req->hasParam("path")) {
@@ -1959,10 +1959,10 @@ void WebUI::handleSdDownload(AsyncWebServerRequest* req) {
     // which fires first. ESPAsyncWebServer guarantees onDisconnect fires on TCP
     // close, but does NOT guarantee it fires after a normal HTTP/1.1 keep-alive
     // transfer completes without a disconnect. Without this, the File handle
-    // leaks until the next TCP close — SD supports only ~5 concurrent handles.
+    // leaks until the next TCP close - SD supports only ~5 concurrent handles.
     auto* closed = new (std::nothrow) volatile bool(false);
     auto closeOnce = [fp, closed]() {
-        // Simple flag — only one path should fire, but guard just in case.
+        // Simple flag - only one path should fire, but guard just in case.
         if (closed && !*closed) {
             *closed = true;
             if (fp && *fp) fp->close();
@@ -1971,7 +1971,7 @@ void WebUI::handleSdDownload(AsyncWebServerRequest* req) {
         }
     };
 
-    // beginResponse(Stream&, contentType, size) — correct API for ESPAsyncWebServer 3.x
+    // beginResponse(Stream&, contentType, size) - correct API for ESPAsyncWebServer 3.x
     // Passes the File by reference; the server reads it asynchronously.
     AsyncWebServerResponse* r = req->beginResponse(*fp, mime, fileSize);
     r->addHeader("Content-Disposition",
@@ -1994,14 +1994,14 @@ void WebUI::handleSdUpload(AsyncWebServerRequest* req, const String& filename,
     if (req->hasParam("path")) destDir = req->getParam("path")->value();
     if (!destDir.endsWith("/")) destDir += "/";
 
-    // Strip any path from filename — store in destDir only
+    // Strip any path from filename - store in destDir only
     String fname = filename;
     int slash = fname.lastIndexOf('/');
     if (slash >= 0) fname = fname.substring(slash + 1);
     String destPath = destDir + fname;
 
     if (index == 0) {
-        // First chunk — open file
+        // First chunk - open file
         if (!sdMgr.beginUpload(destPath)) {
             Serial.printf(DEBUG_TAG " [SD-Upload] Cannot open: %s\n", destPath.c_str());
             return;
@@ -2051,19 +2051,19 @@ void WebUI::handleSdOtaTrigger(AsyncWebServerRequest* req) {
     // Send acknowledgement before starting (OTA blocks briefly)
     sendJson(req, 200, String("{\"ok\":true,\"target\":\"") + target +
              "\",\"bytes\":" + String((uint32_t)sz) +
-             ",\"note\":\"OTA started from SD — device will reboot\"}");
+             ",\"note\":\"OTA started from SD - device will reboot\"}");
 
-    // Queue the actual OTA in the restart mechanism —
+    // Queue the actual OTA in the restart mechanism -
     // we need the HTTP response to flush first.
     // Use a short delay then trigger from loop via s_restartAt pattern.
     // Actually: trigger directly since response is async and already queued.
     // OtaManager handles the async chunk feeding internally.
     bool ok = sdMgr.triggerOtaFromSD(target);
     // FIX: s_restartAt write must be protected by the same spinlock
-    // used in main.cpp loop() — was written unprotected (race condition).
+    // used in main.cpp loop() - was written unprotected (race condition).
     // Use OTA onEnd callback path instead; finishUpdate() already fires
     // the broadcastOtaResult which triggers the restart via onEnd callback.
-    // Direct s_restartAt write removed — restart handled by otaMgr callback.
+    // Direct s_restartAt write removed - restart handled by otaMgr callback.
     (void)ok;
 }
 
@@ -2306,7 +2306,7 @@ void WebUI::handleSdMove(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
 }
 
 // ── /api/sd/rmrf ──────────────────────────────────────────────
-// ?path=/dir  — deletes file or entire directory tree
+// ?path=/dir  - deletes file or entire directory tree
 void WebUI::handleSdDeleteRecursive(AsyncWebServerRequest* req) {
     if (!authMgr.checkAuth(req)) return;
     if (!sdMgr.isAvailable()) { sdNotAvail(req); return; }
@@ -2328,7 +2328,7 @@ void WebUI::handleSdDeleteRecursive(AsyncWebServerRequest* req) {
 }
 
 // ── /api/sd/info ──────────────────────────────────────────────
-// ?path=/file  — returns metadata (size, modTime, isDir)
+// ?path=/file  - returns metadata (size, modTime, isDir)
 void WebUI::handleSdFileInfo(AsyncWebServerRequest* req) {
     if (!sdMgr.isAvailable()) { sdNotAvail(req); return; }
     if (!req->hasParam("path")) {
@@ -2365,7 +2365,7 @@ void WebUI::handleSdFileInfo(AsyncWebServerRequest* req) {
 }
 
 // ── /api/sd/read ──────────────────────────────────────────────
-// ?path=/file[&max=8192]  — read text file for preview (max 8 KB)
+// ?path=/file[&max=8192]  - read text file for preview (max 8 KB)
 // Only allows text-safe extensions to prevent binary garbage in UI.
 void WebUI::handleSdReadText(AsyncWebServerRequest* req) {
     if (!sdMgr.isAvailable()) { sdNotAvail(req); return; }
@@ -2410,7 +2410,7 @@ void WebUI::handleSdReadText(AsyncWebServerRequest* req) {
 }
 
 // ── /api/sd/format ────────────────────────────────────────────
-// Body: {"confirm":"FORMAT_SD_CARD"}  — must include exact passphrase
+// Body: {"confirm":"FORMAT_SD_CARD"}  - must include exact passphrase
 void WebUI::handleSdFormat(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
     if (!authMgr.checkAuth(req)) return;
     if (!sdMgr.isAvailable()) { sdNotAvail(req); return; }

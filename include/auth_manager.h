@@ -35,7 +35,7 @@ public:
     void   begin();
     void   loop();   // expire old sessions
 
-    // Login — returns token or empty string on failure
+    // Login - returns token or empty string on failure
     String login(const String& username,
                  const String& password,
                  const String& clientHint = "");
@@ -46,7 +46,7 @@ public:
     // Extract Bearer token from request header
     static String extractBearer(AsyncWebServerRequest* req);
 
-    // Middleware — returns true=authorized, false=rejected+401 sent
+    // Middleware - returns true=authorized, false=rejected+401 sent
     bool   checkAuth(AsyncWebServerRequest* req);
 
     bool   loadConfig();

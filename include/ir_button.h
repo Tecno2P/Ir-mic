@@ -12,7 +12,7 @@
 //    retransmitted with the matching IRsend::sendXxx() call.
 //  • Complex AC (state[]) protocols: captured as RAW timings,
 //    stored in rawData[], retransmitted via sendRaw().
-//    This is safe and always works — the library's own decoder
+//    This is safe and always works - the library's own decoder
 //    fills decode_results.state[] but we just re-send the
 //    timing array which is 100% faithful to the original signal.
 // ============================================================
@@ -158,7 +158,7 @@ enum class IRProtocol : uint8_t {
     TOTO             = 127,   // Toto toilet
 };
 
-// ── Simple (≤64-bit) protocols — send via code ───────────────
+// ── Simple (≤64-bit) protocols - send via code ───────────────
 // Complex AC protocols fall through to sendRaw() automatically.
 inline bool isSimpleProtocol(IRProtocol p) {
     switch (p) {
@@ -210,7 +210,7 @@ inline bool isSimpleProtocol(IRProtocol p) {
         case IRProtocol::COOLIX:
         case IRProtocol::COOLIX48:
             return true;
-        // MWM uses byte-array sendMWM(), NOT a simple 64-bit code — exclude from simple
+        // MWM uses byte-array sendMWM(), NOT a simple 64-bit code - exclude from simple
         default:
             return false;
     }
@@ -349,7 +349,7 @@ inline const char* protocolName(IRProtocol p) {
 
 inline IRProtocol protocolFromString(const char* s) {
     if (!s) return IRProtocol::UNKNOWN;
-    // Simple lookup table — covers all 127 protocols
+    // Simple lookup table - covers all 127 protocols
     struct { const char* name; IRProtocol proto; } tbl[] = {
         {"NEC",             IRProtocol::NEC},
         {"NEC_LIKE",        IRProtocol::NEC_LIKE},
