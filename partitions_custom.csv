@@ -1,0 +1,17 @@
+# Name,   Type, SubType,  Offset,   Size,     Flags
+# ── Optimized 4 MB Flash layout v6.0 ──────────────────────────
+# nvs      :  NVS storage (WiFi keys, prefs)          20 KB
+# otadata  :  OTA boot selector                        8 KB
+# app0     :  OTA slot 0 (active firmware)          1664 KB
+# app1     :  OTA slot 1 (OTA target)               1664 KB
+# spiffs   :  LittleFS data                          704 KB
+# Total    :  20+8+1664+1664+704 = 4060 KB  (< 4096 KB OK)
+# ─────────────────────────────────────────────────────────────
+# v6.0 change: app slots enlarged 1408→1664 KB (+256 KB each)
+# to accommodate firmware with full IR library + AI + all modules.
+# LittleFS reduced 752→704 KB (still ample for logs, IR DB, config).
+nvs,      data, nvs,      0x9000,   0x5000,
+otadata,  data, ota,      0xe000,   0x2000,
+app0,     app,  ota_0,    0x10000,  0x1A0000,
+app1,     app,  ota_1,    0x1B0000, 0x1A0000,
+spiffs,   data, spiffs,   0x350000, 0xB0000,
