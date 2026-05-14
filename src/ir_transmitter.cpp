@@ -126,10 +126,9 @@ void IRTransmitter::createSender(uint8_t idx, uint8_t pin) {
         _pins[idx] = 255;
         return;
     }
-    // Pass idx as the RMT channel (0-7). Each emitter MUST have its own
-    // dedicated RMT channel; sharing channels causes corrupted waveforms.
-    // IRsend constructor: (pin, inverted, use_modulation, channel)
-    _senders[idx] = new (std::nothrow) IRsend(pin, false, true, idx);
+    // IRremoteESP8266 v2.8.6 constructor: (pin, inverted, use_modulation)
+    // RMT channel is assigned automatically by the library per-pin.
+    _senders[idx] = new (std::nothrow) IRsend(pin, false, true);
     if (!_senders[idx]) {
         Serial.printf(DEBUG_TAG " ERROR: IRsend[%d] allocation failed (OOM)\n", idx);
         _pins[idx] = 255;
