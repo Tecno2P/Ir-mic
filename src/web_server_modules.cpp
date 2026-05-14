@@ -1031,7 +1031,7 @@ void WebUI::setupModuleToggleRoutes() {
                 if      (m == "nfc")    nfcModule.setEnabled(a->en);
                 else if (m == "rfid")   rfidModule.setEnabled(a->en);
                 else if (m == "nrf24")  nrf24Module.setEnabled(a->en);
-                else if (m == "subghz") subghzModule.setEnabled(a->en);
+                else if (m == "subghz") subGhzModule.setEnabled(a->en);
                 Serial.printf("[MOD] %s -> %s\n", a->mod, a->en ? "ON" : "OFF");
                 delete a;
                 vTaskDelete(NULL);
