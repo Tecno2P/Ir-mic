@@ -681,7 +681,7 @@ void WebUI::handleAddButton(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
     JsonDocument r; r["ok"]=true; r["id"]=id;
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    serializeJson(doc, out);
+    serializeJson(r, out);
     sendJson(req,200,out);
 }
 
@@ -796,7 +796,6 @@ void WebUI::handlePwmTest(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
         : "No active emitters - configure TX GPIO in Settings -> GPIO first";
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    String out;
     serializeJson(resp, out);
     sendJson(req, ok ? 200 : 500, out);
 }
@@ -1282,13 +1281,11 @@ void WebUI::handleRestore(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
         doc["buttons"] = (int)irDB.size();
         String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    String out;
         serializeJson(doc, out);
         sendJson(req, 200, out);
     } else {
         String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    String out;
         serializeJson(doc, out);
         sendJson(req, 400, out);
     }
@@ -1527,8 +1524,7 @@ void WebUI::handleSetGpioPins(AsyncWebServerRequest* req, uint8_t* d, size_t l) 
     respDoc["activeEmitters"]= irTransmitter.activeCount();
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    String out;
-    serializeJson(doc, out);
+    serializeJson(respDoc, out);
     sendJson(req, anyError?207:200, out);
 }
 
@@ -1658,7 +1654,6 @@ void WebUI::handleMacroSave(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
         JsonDocument r; r["error"] = err;
         String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    String out;
         serializeJson(r, out);
         sendJson(req, 400, out);
         return;
@@ -1666,7 +1661,7 @@ void WebUI::handleMacroSave(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
     JsonDocument r; r["ok"] = true; r["name"] = name;
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    serializeJson(doc, out);
+    serializeJson(r, out);
     sendJson(req, 200, out);
 }
 
@@ -1696,7 +1691,7 @@ void WebUI::handleMacroRun(AsyncWebServerRequest* req) {
     r["steps"]= macroMgr.runTotal();
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    serializeJson(doc, out);
+    serializeJson(r, out);
     sendJson(req, 200, out);
 }
 
@@ -2100,7 +2095,7 @@ void WebUI::handleSdBackup(AsyncWebServerRequest* req, uint8_t* d, size_t l) {
     r["tag"] = tag;
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    serializeJson(doc, out);
+    serializeJson(r, out);
     sendJson(req, 200, out);
 }
 
@@ -2195,7 +2190,7 @@ void WebUI::handleSdIRLibExport(AsyncWebServerRequest* req, uint8_t* d, size_t l
     r["buttons"] = (int)irDB.size();
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    serializeJson(doc, out);
+    serializeJson(r, out);
     sendJson(req, 200, out);
 }
 
@@ -2219,7 +2214,7 @@ void WebUI::handleSdIRLibImport(AsyncWebServerRequest* req, uint8_t* d, size_t l
     r["buttons"] = (int)irDB.size();
     String out;
     out.reserve(512);  // FIX: pre-alloc avoids realloc during serialize
-    serializeJson(doc, out);
+    serializeJson(r, out);
     sendJson(req, 200, out);
 }
 
