@@ -8,6 +8,7 @@
 #include "sd_manager.h"
 #include <LittleFS.h>
 #include <ESPAsyncWebServer.h>
+#include <AsyncJson.h>
 
 extern AuthManager  authMgr;
 extern AuditManager auditMgr;

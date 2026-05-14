@@ -14,6 +14,7 @@
 #include "auth_manager.h"
 #include "audit_manager.h"
 #include <ArduinoJson.h>
+#include <AsyncJson.h>
 #include <LittleFS.h>
 #include <map>
 extern AuditManager auditMgr;
@@ -991,8 +992,8 @@ void WebUI::setupModuleToggleRoutes() {
             j += "\"rfidHw\":" + String(rfidModule.isConnected() ? "true":"false") + ",";
             j += "\"nrf24\":"  + String(nrf24Module.isEnabled()  ? "true":"false") + ",";
             j += "\"nrf24Hw\":"+ String(nrf24Module.isConnected()? "true":"false") + ",";
-            j += "\"subghz\":" + String(subghzModule.isEnabled() ? "true":"false") + ",";
-            j += "\"subghzHw\":"+ String(subghzModule.isConnected()? "true":"false");
+            j += "\"subghz\":" + String(subGhzModule.isEnabled() ? "true":"false") + ",";
+            j += "\"subghzHw\":"+ String(subGhzModule.isConnected()? "true":"false");
             j += "}";
             _sendJson(req, 200, j);
         });
