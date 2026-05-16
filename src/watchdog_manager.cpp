@@ -223,13 +223,15 @@ void WatchdogManager::_checkHeap(uint32_t freeHeap, unsigned long now) {
 //  Smart memory cleanup - releases known reclaimable buffers
 // ─────────────────────────────────────────────────────────────
 void WatchdogManager::tryMemoryCleanup() {
-    // Force garbage collection of any pending AsyncWebServer response buffers
-    // by yielding to the FreeRTOS scheduler
-    for (int i = 0; i < 5; i++) {
-        yield();
-        vTaskDelay(pdMS_TO_TICKS(1));  // yield 1ms to RTOS
+    // FIX: yield for 200ms (20 × 10ms) instead of 5 × 1ms.
+    // AsyncWebServer response buffers are freed when the TCP stack drains its
+    // send queue; this requires multiple scheduler rounds (~5-10ms each) to
+    // complete. The original 5ms total was rarely enough to free anything
+    // meaningful, causing the 3-strike reboot counter to trigger on transient
+    // allocation bursts (e.g., OTA chunk + IR TX + status broadcast coinciding).
+    for (int i = 0; i < 20; i++) {
+        vTaskDelay(pdMS_TO_TICKS(10));  // yield 10ms to RTOS per round
     }
-    // Log result
     Serial.printf(WDT_TAG " Memory cleanup done. Heap now: %u bytes\n",
                   ESP.getFreeHeap());
 }
@@ -332,7 +334,12 @@ void WatchdogManager::_checkConnectivity() {
         }
         wdt->_pingActive = false;   // C-02 FIX: clear flag before self-delete
         vTaskDelete(NULL);
-    }, "wdt_ping", 4096, args, 1, NULL);
+    // FIX: stack raised from 4096 to 6144.
+    // HTTPClient on ESP32 Arduino requires DNS resolution + TCP handshake + HTTP
+    // header parsing; typical stack depth is 5-5.5KB. 4096 caused silent stack
+    // overflow -> heap corruption. 6144 gives a safe margin.
+    // Priority 1 = same as loop(); no scheduling advantage. Core 0 = network core.
+    }, "wdt_ping", 6144, args, 1, NULL);
 
     if (ok != pdPASS) {
         delete args;

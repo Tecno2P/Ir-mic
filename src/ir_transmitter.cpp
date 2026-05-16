@@ -1,15 +1,22 @@
 // ============================================================
 //  ir_transmitter.cpp  -  Multi-emitter IR transmit
 //
-//  v1.3.0 fixes applied:
-//    FIX-1: FreeRTOS mutex (_txMutex) replaces bare-bool guard.
-//           xSemaphoreTake/Give is safe across tasks and ISR context.
-//    FIX-2: Dedicated IR TX FreeRTOS task (_txTask) on Core 1.
-//           transmitAsync() posts IRButton to txQueue without blocking
-//           loop(). The task calls transmit() inside its own context,
-//           so delay() inside doTransmit() only blocks that task.
-//    FIX-3: transmitRaw() quiet-time was 5 ms; raised to 20 ms for
-//           consistency with transmit(). Fixes sporadic raw TX failures.
+//  v1.4.0 fixes applied:
+//    FIX-CRITICAL: FreeRTOS xQueueSend(sizeof(IrTxCommand)) does a shallow
+//      memcpy of the IrTxCommand struct. IRButton contains String + vector<uint16_t>,
+//      both of which have heap-allocated internal buffers. The memcpy copies only
+//      the stack-local pointers; when the source IrTxCommand destructs after
+//      transmitAsync() returns, those heap blocks are freed, leaving dangling
+//      pointers inside the queue storage -> heap corruption -> crash/garbage TX.
+//
+//      Fix: allocate IrTxCommand on heap (new), post only the pointer into
+//      a std::queue<IrTxCommand*> protected by _queueMutex. A binary semaphore
+//      (_notify) wakes the IR task. The task deletes the object after TX.
+//      IRButton's C++ copy constructor performs deep copies of String + vector,
+//      so the heap allocation is always safe and complete.
+//
+//    FIX-1: FreeRTOS mutex (_txMutex) protects transmit() critical section.
+//    FIX-3: transmitRaw() quiet-time now from config (IR_PRE_TX_QUIET_MS).
 // ============================================================
 #include "ir_transmitter.h"
 #include "ir_receiver.h"
@@ -17,11 +24,9 @@
 
 IRTransmitter irTransmitter;
 
-// Static queue handle - defined here, declared extern in header.
-QueueHandle_t IRTransmitter::txQueue = nullptr;
-
 // ── Constructor ───────────────────────────────────────────────
-IRTransmitter::IRTransmitter() : _count(0), _txMutex(nullptr) {
+IRTransmitter::IRTransmitter()
+    : _count(0), _txMutex(nullptr), _queueMutex(nullptr), _notify(nullptr) {
     for (uint8_t i = 0; i < IR_MAX_EMITTERS; ++i) {
         _senders[i] = nullptr;
         _pins[i]    = 255;
@@ -32,7 +37,7 @@ IRTransmitter::~IRTransmitter() { destroyAll(); }
 
 // ── begin ─────────────────────────────────────────────────────
 void IRTransmitter::begin(const IrPinConfig& pins) {
-    // Create mutex once - idempotent if called again via reconfigure()
+    // Create TX critical-section mutex once
     if (!_txMutex) {
         _txMutex = xSemaphoreCreateMutex();
         if (!_txMutex) {
@@ -40,29 +45,28 @@ void IRTransmitter::begin(const IrPinConfig& pins) {
             return;
         }
     }
-
-    // Create async TX queue once (depth 8 - enough for burst scheduling)
-    if (!txQueue) {
-        txQueue = xQueueCreate(8, sizeof(IrTxCommand));
-        if (!txQueue) {
-            Serial.println(DEBUG_TAG " FATAL: IR TX queue creation failed");
+    // Create pointer-queue mutex once
+    if (!_queueMutex) {
+        _queueMutex = xSemaphoreCreateMutex();
+        if (!_queueMutex) {
+            Serial.println(DEBUG_TAG " FATAL: IR queue mutex creation failed");
             return;
         }
-        // Pin IR TX task to Core 1 alongside loop() - IR timing is CPU-bound
-        // and benefits from being on the same core as the Arduino task so
-        // FreeRTOS cooperative scheduling keeps them interleaved cleanly.
+    }
+    // Create notify semaphore once (binary - unblocks IR task when cmd available)
+    if (!_notify) {
+        _notify = xSemaphoreCreateBinary();
+        if (!_notify) {
+            Serial.println(DEBUG_TAG " FATAL: IR notify semaphore creation failed");
+            return;
+        }
+        // Pin IR TX task to Core 1 alongside loop() - IR timing is CPU-bound.
         // Priority 5 > loop() priority (1) so IR fires promptly when queued.
         // Stack 6KB: 8 emitters × doTransmit frame + IRsend overhead is safe.
         xTaskCreatePinnedToCore(
-            _txTask,        // task function
-            "ir_tx",        // name
-            6144,           // stack (8 emitters - bumped from 4096)
-            this,           // param -> IRTransmitter instance
-            5,              // priority (higher than loop = 1)
-            nullptr,        // handle not stored - task runs forever
-            1               // Core 1 - same as Arduino loop()
+            _txTask, "ir_tx", 6144, this, 5, nullptr, 1
         );
-        Serial.println(DEBUG_TAG " IR TX task started on Core 1 (priority 5)");
+        Serial.println(DEBUG_TAG " IR TX task started on Core 1 (priority 5, ptr-queue)");
     }
 
     destroyAll();
@@ -77,24 +81,37 @@ void IRTransmitter::begin(const IrPinConfig& pins) {
     }
 }
 
-// ── _txTask - IR TX FreeRTOS task ────────────────────────────
-// Blocks on txQueue. When a command arrives, calls transmit() which
-// takes _txMutex. delay() inside doTransmit() only blocks this task.
+// ── _txTask - IR TX FreeRTOS task (pointer-queue version) ────
+// Blocks on _notify semaphore. Pops one IrTxCommand* per wakeup,
+// executes TX, then deletes the heap object. No FreeRTOS memcpy of
+// C++ objects - pointer only crosses task boundary.
 /*static*/
 void IRTransmitter::_txTask(void* param) {
     IRTransmitter* self = static_cast<IRTransmitter*>(param);
-    IrTxCommand cmd;
     for (;;) {
-        // Block indefinitely until a command is posted
-        if (xQueueReceive(IRTransmitter::txQueue, &cmd, portMAX_DELAY) == pdTRUE) {
-            if (cmd.rawMode && !cmd.btn.rawData.empty()) {
-                self->transmitRaw(cmd.btn.rawData.data(),
-                                  cmd.btn.rawData.size(),
-                                  cmd.btn.freqKHz);
-            } else {
-                self->transmit(cmd.btn);
+        // Block until transmitAsync() posts a command
+        xSemaphoreTake(self->_notify, portMAX_DELAY);
+
+        // Pop pointer under mutex
+        IrTxCommand* cmd = nullptr;
+        if (xSemaphoreTake(self->_queueMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
+            if (!self->_ptrQueue.empty()) {
+                cmd = self->_ptrQueue.front();
+                self->_ptrQueue.pop();
             }
+            xSemaphoreGive(self->_queueMutex);
         }
+        if (!cmd) continue;  // spurious wakeup - shouldn't happen
+
+        // Execute TX - IRButton is fully owned by cmd (deep copy from transmitAsync)
+        if (cmd->rawMode && !cmd->btn.rawData.empty()) {
+            self->transmitRaw(cmd->btn.rawData.data(),
+                              cmd->btn.rawData.size(),
+                              cmd->btn.freqKHz);
+        } else {
+            self->transmit(cmd->btn);
+        }
+        delete cmd;  // release heap-allocated command object
     }
 }
 
@@ -158,11 +175,12 @@ uint8_t IRTransmitter::emitterPin(uint8_t idx) const {
     return (idx < IR_MAX_EMITTERS && _senders[idx]) ? _pins[idx] : 255;
 }
 
-// ── transmitAsync - non-blocking post to TX task ──────────────
-// Posts the IRButton to txQueue. Returns false if queue full.
-// Loop/scheduler/rule-engine should call this instead of transmit().
+// ── transmitAsync - non-blocking post to IR TX task ──────────
+// Heap-allocates IrTxCommand (deep copy of IRButton via C++ copy ctor),
+// pushes pointer to _ptrQueue, signals _notify semaphore.
+// No FreeRTOS memcpy of C++ objects. Safe for String + vector payloads.
 bool IRTransmitter::transmitAsync(const IRButton& btn) {
-    if (!txQueue) return false;
+    if (!_notify || !_queueMutex) return false;
     if (!btn.isValid()) {
         Serial.println(DEBUG_TAG " transmitAsync: invalid button");
         return false;
@@ -171,14 +189,33 @@ bool IRTransmitter::transmitAsync(const IRButton& btn) {
         Serial.println(DEBUG_TAG " transmitAsync: no active emitters");
         return false;
     }
-    IrTxCommand cmd;
-    cmd.btn     = btn;   // IRButton copy - safe, owned by cmd
-    cmd.rawMode = false;
-    BaseType_t sent = xQueueSend(txQueue, &cmd, 0);  // non-blocking
-    if (sent != pdTRUE) {
+
+    // Allocate command on heap - C++ copy constructor deep-copies String + vector
+    IrTxCommand* cmd = new (std::nothrow) IrTxCommand;
+    if (!cmd) {
+        Serial.println(DEBUG_TAG " WARNING: transmitAsync OOM - command dropped");
+        return false;
+    }
+    cmd->btn     = btn;    // deep copy via IRButton copy ctor
+    cmd->rawMode = false;
+
+    // Push pointer under mutex
+    if (xSemaphoreTake(_queueMutex, pdMS_TO_TICKS(10)) != pdTRUE) {
+        delete cmd;
+        Serial.println(DEBUG_TAG " WARNING: transmitAsync queue mutex timeout");
+        return false;
+    }
+    if ((int)_ptrQueue.size() >= IR_TX_PTR_QUEUE_MAX) {
+        xSemaphoreGive(_queueMutex);
+        delete cmd;
         Serial.println(DEBUG_TAG " WARNING: IR TX queue full - command dropped");
         return false;
     }
+    _ptrQueue.push(cmd);
+    xSemaphoreGive(_queueMutex);
+
+    // Signal IR task - non-blocking (binary semaphore give always succeeds)
+    xSemaphoreGive(_notify);
     return true;
 }
 

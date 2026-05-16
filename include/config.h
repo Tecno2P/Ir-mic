@@ -16,7 +16,7 @@
 // Defined via -DFIRMWARE_VERSION in platformio.ini build_flags
 // (do NOT redefine here - would cause "macro redefined" warning)
 #ifndef FIRMWARE_VERSION
-  #define FIRMWARE_VERSION "5.0.0"
+  #define FIRMWARE_VERSION "5.2.0"
 #endif
 
 // ── Wi-Fi Access Point defaults ─────────────────────────────

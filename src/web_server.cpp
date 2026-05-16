@@ -1317,13 +1317,15 @@ void WebUI::broadcastIREvent(const IRButton& btn) {
 
 void WebUI::broadcastMessage(const String& text) {
     if (_ws.count() == 0) return;
-    // FIX: fixed-size stack buffer - message events are always small (<200 bytes).
-    // Avoids String heap alloc entirely for this high-frequency call.
+    // FIX: Route through _pushWsMessage() instead of calling _ws.textAll() directly.
+    // textAll() is not thread-safe from non-loop() contexts (e.g., rule engine callbacks
+    // firing from hw_poll task, or OTA completion callback from net_io task).
+    // _pushWsMessage uses a mutex-protected queue and is safe from any task.
     char buf[256];
     int n = snprintf(buf, sizeof(buf),
         "{\"event\":\"message\",\"message\":\"%s\"}", text.c_str());
     if (n > 0 && n < (int)sizeof(buf)) {
-        _ws.textAll(buf, (size_t)n);  // direct - skip queue for tiny messages
+        _pushWsMessage(String(buf));
     }
 }
 
@@ -1352,6 +1354,13 @@ void WebUI::broadcastOtaResult(bool success, const String& message) {
 void WebUI::broadcastBinary(const uint8_t* data, size_t len) {
     if (_ws.count() == 0 || !data || len == 0) return;
     _ws.binaryAll(const_cast<uint8_t*>(data), len);
+}
+
+// Send pre-serialized JSON directly to all WS clients via the safe push queue.
+// Use for one-off structured events (e.g. scheduled_tx) without JsonDocument overhead.
+void WebUI::broadcastRaw(const char* json) {
+    if (!json || _ws.count() == 0) return;
+    _pushWsMessage(String(json));
 }
 
 void WebUI::broadcastStatus() {

@@ -19,7 +19,11 @@
 #define WDT_TAG                   "[WDT]"
 
 #define WDT_HW_TIMEOUT_S          30
-#define WDT_LOOP_MAX_MS           8000UL
+// FIX: WDT_LOOP_MAX_MS reduced from 8000ms to 500ms.
+// A healthy loop() runs in <5ms normally; 500ms catches real stalls (blocking SD
+// writes, large JSON serializations, etc.) without false positives from IR TX
+// (which runs in its own task and never blocks loop() directly).
+#define WDT_LOOP_MAX_MS           500UL
 #define WDT_LOOP_REBOOT_MS        30000UL
 #define WDT_HEAP_MIN_BYTES        20000UL
 #define WDT_HEAP_CRITICAL_BYTES   12000UL

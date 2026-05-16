@@ -174,10 +174,16 @@ void AuthManager::clearSessions() { _sessions.clear(); }
 
 String AuthManager::statusJson() const {
     bool locked = _lockedUntil > 0 && (uint32_t)(millis() - _lockedUntil) >= 0x80000000UL;
-    return String("{\"enabled\":") + (_enabled?"true":"false")
+    String json = String("{\"enabled\":") + (_enabled?"true":"false")
          + ",\"firstLogin\":"      + (_firstLogin?"true":"false")
          + ",\"sessions\":"        + _sessions.size()
-         + ",\"locked\":"          + (locked?"true":"false") + "}";
+         + ",\"locked\":"          + (locked?"true":"false");
+    // Expose default password ONLY on first login so UI can show it to user
+    if (_firstLogin && !_defaultPass.isEmpty()) {
+        json += ",\"defaultPass\":\"" + _defaultPass + "\"";
+    }
+    json += "}";
+    return json;
 }
 
 String AuthManager::configJson() const {

@@ -246,8 +246,7 @@ bool Nrf24Module::replayPackets() {
             buf[i] = (uint8_t)strtol(h, nullptr, 16);
         }
         _radio->write(buf, 32);
-        delay(2);
-        yield();  // feed watchdog during replay
+        vTaskDelay(pdMS_TO_TICKS(2));  // FIX: yield to RTOS; delay() in hw_poll blocks siblings
     }
     _radio->setChannel(_channel);
     _radio->startListening();

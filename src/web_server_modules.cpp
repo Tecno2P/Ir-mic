@@ -3,6 +3,7 @@
 //  NFC, RFID, Sub-GHz, NRF24, System modules
 // ============================================================
 #include "web_server.h"
+#include "esp_ota_ops.h"   // esp_ota_begin/write/end/set_boot_partition
 #include "nfc_module.h"
 #include "rfid_module.h"
 #include "subghz_module.h"
@@ -685,6 +686,156 @@ void WebUI::setupModuleRoutes() {
         LittleFS.format();
         ESP.restart();
     });
+
+    // ── RC Firmware Switch ────────────────────────────────────
+    // POST /api/system/switch-rc
+    // Flashes Combo.bin (stored at /combo.bin in LittleFS) to
+    // OTA app1 partition, then reboots into RC firmware.
+    // To return to ir_remote: hold GPIO0 (BOOT) for 2 seconds.
+    _server.on("/api/system/switch-rc", HTTP_POST,
+        [](AsyncWebServerRequest* req) {
+            if (!authMgr.checkAuth(req)) return;
+
+            // Check if combo.bin exists in LittleFS
+            if (!LittleFS.exists("/combo.bin")) {
+                _sendJson(req, 404,
+                    "{\"ok\":false,\"error\":\"combo.bin not found. "
+                    "Please upload it first via /api/system/upload-combo\"}");
+                return;
+            }
+
+            File f = LittleFS.open("/combo.bin", "r");
+            if (!f) {
+                _sendJson(req, 500, "{\"ok\":false,\"error\":\"Cannot open combo.bin\"}");
+                return;
+            }
+            size_t fsize = f.size();
+
+            // Get OTA target partition (app1)
+            const esp_partition_t* target = esp_ota_get_next_update_partition(NULL);
+            if (!target) {
+                f.close();
+                _sendJson(req, 500,
+                    "{\"ok\":false,\"error\":\"No OTA partition found. "
+                    "Check partition table.\"}");
+                return;
+            }
+
+            if (fsize > target->size) {
+                f.close();
+                _sendJson(req, 400,
+                    "{\"ok\":false,\"error\":\"combo.bin too large for OTA partition\"}");
+                return;
+            }
+
+            // Begin OTA write
+            esp_ota_handle_t otaHandle = 0;
+            esp_err_t err = esp_ota_begin(target, OTA_WITH_SEQUENTIAL_WRITES, &otaHandle);
+            if (err != ESP_OK) {
+                f.close();
+                _sendJson(req, 500,
+                    String("{\"ok\":false,\"error\":\"esp_ota_begin failed: ")
+                    + esp_err_to_name(err) + "\"}");
+                return;
+            }
+
+            // Stream LittleFS file → OTA partition in 4KB chunks
+            uint8_t buf[4096];
+            bool writeOk = true;
+            while (f.available()) {
+                int bytesRead = f.read(buf, sizeof(buf));
+                if (bytesRead <= 0) break;
+                err = esp_ota_write(otaHandle, buf, bytesRead);
+                if (err != ESP_OK) {
+                    writeOk = false;
+                    break;
+                }
+            }
+            f.close();
+
+            if (!writeOk) {
+                esp_ota_abort(otaHandle);
+                _sendJson(req, 500,
+                    String("{\"ok\":false,\"error\":\"OTA write failed: ")
+                    + esp_err_to_name(err) + "\"}");
+                return;
+            }
+
+            err = esp_ota_end(otaHandle);
+            if (err != ESP_OK) {
+                _sendJson(req, 500,
+                    String("{\"ok\":false,\"error\":\"esp_ota_end failed: ")
+                    + esp_err_to_name(err) + "\"}");
+                return;
+            }
+
+            // Set app1 as next boot partition
+            err = esp_ota_set_boot_partition(target);
+            if (err != ESP_OK) {
+                _sendJson(req, 500,
+                    String("{\"ok\":false,\"error\":\"esp_ota_set_boot_partition failed: ")
+                    + esp_err_to_name(err) + "\"}");
+                return;
+            }
+
+            Serial.println("[SWITCH] RC firmware flashed OK → rebooting to Combo");
+            _sendJson(req, 200,
+                "{\"ok\":true,\"note\":\"RC firmware flashed. Rebooting... "
+                "Hold GPIO0 (BOOT) 2 sec to return to IR Remote.\"}");
+
+            // Deferred restart
+            extern portMUX_TYPE s_restartMux;
+            extern volatile uint32_t s_restartAt;
+            taskENTER_CRITICAL(&s_restartMux);
+            s_restartAt = (uint32_t)(millis() + 1500);
+            taskEXIT_CRITICAL(&s_restartMux);
+        });
+
+    // POST /api/system/upload-combo  (multipart file upload)
+    // Saves Combo.bin to LittleFS /combo.bin
+    // Must be called once before using /api/system/switch-rc
+    _server.on("/api/system/upload-combo", HTTP_POST,
+        [](AsyncWebServerRequest* req) {
+            if (!authMgr.checkAuth(req)) return;
+            if (LittleFS.exists("/combo.bin")) {
+                size_t sz = LittleFS.open("/combo.bin","r").size();
+                _sendJson(req, 200,
+                    String("{\"ok\":true,\"size\":") + sz + "}");
+            } else {
+                _sendJson(req, 500, "{\"ok\":false,\"error\":\"Upload failed\"}");
+            }
+        },
+        [](AsyncWebServerRequest* req, const String& filename,
+           size_t index, uint8_t* data, size_t len, bool final) {
+            if (!authMgr.checkAuth(req)) return;
+            static File comboFile;
+            if (index == 0) {
+                Serial.printf("[SWITCH] Receiving combo.bin...\n");
+                if (LittleFS.exists("/combo.bin")) LittleFS.remove("/combo.bin");
+                comboFile = LittleFS.open("/combo.bin", "w");
+            }
+            if (comboFile) comboFile.write(data, len);
+            if (final && comboFile) {
+                comboFile.close();
+                Serial.printf("[SWITCH] combo.bin saved (%u bytes)\n", (unsigned)(index+len));
+            }
+        });
+
+    // GET /api/system/combo-status
+    // Check if combo.bin is stored and ready
+    _server.on("/api/system/combo-status", HTTP_GET,
+        [](AsyncWebServerRequest* req) {
+            if (!authMgr.checkAuth(req)) return;
+            if (LittleFS.exists("/combo.bin")) {
+                File f = LittleFS.open("/combo.bin", "r");
+                size_t sz = f ? f.size() : 0;
+                if (f) f.close();
+                _sendJson(req, 200,
+                    String("{\"ready\":true,\"size\":") + sz + "}");
+            } else {
+                _sendJson(req, 200, "{\"ready\":false,\"size\":0}");
+            }
+        });
     // ═══════════════════════════════════════════════════════════
     // Module Status + GPIO endpoints
     // ═══════════════════════════════════════════════════════════

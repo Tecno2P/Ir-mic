@@ -28,6 +28,8 @@ public:
     void broadcastOtaResult  (bool success, const String& msg);
     void broadcastStatus     ();
     void broadcastBinary     (const uint8_t* data, size_t len);
+    // Send pre-serialized JSON string directly to all WS clients
+    void broadcastRaw        (const char* json);
     // Raw JSON string pushed directly to WS queue - used by background tasks
     // (version check, OTA progress from task context) to push pre-built JSON.
     void broadcastRaw        (const String& json);

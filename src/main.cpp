@@ -1,19 +1,32 @@
 // ============================================================
-//  main.cpp  -  IR Remote Web GUI  v5.1.0  |  ESP32-WROOM-32
+//  main.cpp  -  IR Remote Web GUI  v5.2.0  |  ESP32-WROOM-32
 //
-//  v5.1.0 build:
-//    FIX C-01: RFID writeCardAsync() - non-blocking write via dedicated task
-//    FIX C-02: WDT ping task double-spawn guard (_pingActive flag)
-//    FIX C-03: NRF24 channel scan chunked 10/tick (was 125/tick, 16ms block)
-//    FIX C-04: Global VSPI bus mutex (g_spi_vspi_mutex) - SPI thread safety
-//    FIX M-01: SD File* closeOnce lambda - no handle leak on keep-alive
-//    FIX P-03: broadcastStatus() uses static char[] - no heap frag every 3s
-//    FIX S-01: Default auth password derived from MAC (was hardcoded)
-//    FIX S-02: OTA version check uses TLS CA cert (was setInsecure)
-//    + 5 AC protocols: DAIKIN, MITSUBISHI_AC, WHYNTER, HAIER_AC, COOLIX
-//    + IRButton icon + color fields
-//    + Scheduler per-entry repeatCount / repeatDelay
-//    + Internal LittleFS macros (MacroManager - no SD needed)
+//  v5.2.0 build (deep bug scan - smoothness & stability):
+//    FIX Q-01 [CRITICAL]: IR TX queue shallow-copy crash
+//              xQueueSend(sizeof(IrTxCommand)) does memcpy of IRButton
+//              which contains String + vector<uint16_t> with heap ptrs.
+//              Destructor on stack copy freed heap -> dangling ptrs ->
+//              heap corruption / crash on dequeue. Fixed: pointer queue
+//              (std::queue<IrTxCommand*> + mutex + binary semaphore notify).
+//              IRButton deep-copied via C++ copy ctor before heap alloc.
+//    FIX N-01: NFC readPassiveTargetID timeout 100ms -> 10ms in hw_poll task.
+//              100ms blocked ALL hw_poll siblings 5× per tick (20ms period).
+//    FIX R-01: RFID write delay(55ms) -> vTaskDelay(55ms) in hw_poll context.
+//              delay() in hw_poll blocks NFC/SubGHz/NRF24 for 55ms + 5ms.
+//    FIX R-02: NRF24 replay delay(2) -> vTaskDelay(2) in hw_poll context.
+//    FIX S-01: hw_poll FreeRTOS task stack 4096 -> 6144.
+//              NFC MIFARE block reads have deep I2C call stacks; 4096
+//              caused silent stack overflow -> heap corruption.
+//    FIX W-01: WDT_LOOP_MAX_MS 8000ms -> 500ms. 8s threshold too late
+//              to catch real loop stalls; 500ms gives early warning.
+//    FIX W-02: WDT tryMemoryCleanup() yield 5×1ms -> 20×10ms (200ms).
+//              AsyncWebServer TCP flush requires multiple scheduler rounds;
+//              original 5ms was rarely enough, triggering spurious reboots.
+//    FIX W-03: wdt_ping task stack 4096 -> 6144. HTTPClient DNS+TCP+HTTP
+//              parsing needs ~5.5KB; 4096 caused silent stack overflow.
+//    FIX WS-01: broadcastMessage() direct _ws.textAll() -> _pushWsMessage().
+//              textAll() not thread-safe from non-loop() tasks (rule callbacks,
+//              OTA completion). Route through mutex-protected WS queue.
 // ============================================================
 #include <Arduino.h>
 #include <LittleFS.h>
@@ -168,7 +181,7 @@ void setup() {
     scheduler.begin();
 
     Serial.printf(DEBUG_TAG " Ready v%s  AP: http://%s\n",
-                  FIRMWARE_VERSION, wifiMgr.apIP().c_str());
+                  "5.2.0", wifiMgr.apIP().c_str());
     Serial.printf(DEBUG_TAG " RX=GPIO%d  TX-active=%d  Groups=%u  Schedules=%u  Heap=%u\n",
                   irReceiver.activePin(),
                   irTransmitter.activeCount(),
@@ -357,7 +370,16 @@ static void onScheduleFire(const ScheduleEntry& entry) {
     copy.repeatDelay = fireDelay;
     irTransmitter.transmitAsync(copy);   // non-blocking - posts to ir_tx queue
 
-    webUI.broadcastMessage(String("Scheduled TX: ") + copy.name);
+    // FIX: send structured WS event 'scheduled_tx' so the GUI toast fires correctly.
+    // Previously used broadcastMessage() which sends generic 'message' event;
+    // the JS switch already has case 'scheduled_tx' wired to a named toast.
+    {
+        char schedBuf[128];
+        snprintf(schedBuf, sizeof(schedBuf),
+                 "{\"event\":\"scheduled_tx\",\"name\":\"%s\",\"buttonId\":%d}",
+                 copy.name.c_str(), entry.buttonId);
+        webUI.broadcastRaw(schedBuf);
+    }
     auditMgr.logScheduler(entry.name, entry.buttonId);
     if (sdMgr.isAvailable())
         sdMgr.log(String("Scheduler TX: ") + copy.name);

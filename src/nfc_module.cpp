@@ -194,10 +194,14 @@ void NfcModule::_pollForTag() {
     uint8_t uid[7]  = {};
     uint8_t uidLen  = 0;
 
-    // Adafruit PN532 v1.3.x: readPassiveTargetID(baudrate, uid, uidLen, timeout)
-    // No ATQA/SAK args - derive card type from UID length instead.
+    // FIX: Timeout reduced from 100ms to 10ms.
+    // hw_poll task runs on a 20ms vTaskDelayUntil() tick. A 100ms blocking
+    // readPassiveTargetID call stalls ALL hw_poll siblings (RFID, SubGHz, NRF24)
+    // for 5× the intended tick rate - degrading scan responsiveness and potentially
+    // causing spurious WDT module stall warnings.
+    // 10ms is sufficient for PN532 tag presence detection (ATQA response is <1ms).
     if (!pn->readPassiveTargetID(PN532_MIFARE_ISO14443A,
-                                  uid, &uidLen, 100)) return;
+                                  uid, &uidLen, 10)) return;
 
     NfcTag tag;
     tag.uid  = _fmtUid(uid, uidLen);

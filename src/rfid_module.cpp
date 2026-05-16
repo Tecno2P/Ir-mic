@@ -334,9 +334,12 @@ bool RfidModule::writeCard(const String& uid) {
         for (int i = 31; i >= 0; i--) sendBit((w >> i) & 1);
     };
 
-    // 1. Start gap: DATA low for 55 ms (T5577 reset/start condition)
-    digitalWrite(_cfg.dataPin, LOW);
-    delay(55);
+    // FIX: Use vTaskDelay instead of delay() for T5577 start gap.
+    // delay() in hw_poll task context blocks ALL hw_poll siblings (NFC/SubGHz/NRF24)
+    // for 55ms. vTaskDelay yields to the RTOS scheduler, allowing other tasks to run.
+    // Note: writeCardAsync() is already called from a dedicated FreeRTOS task (C-01 fix),
+    // so vTaskDelay is safe here and does not affect loop() or hw_poll siblings.
+    vTaskDelay(pdMS_TO_TICKS(55));
 
     // 2. Write opcode = 10 binary (page 0 write)
     sendBit(1); sendBit(0);
@@ -368,9 +371,8 @@ bool RfidModule::writeCard(const String& uid) {
     uint32_t block2 = ((uint32_t)uidBytes[4] << 24);
     sendWord(block2);
 
-    // End: DATA low (idle)
-    digitalWrite(_cfg.dataPin, LOW);
-    delay(5);
+    // FIX: vTaskDelay - yields scheduler, doesn't block hw_poll siblings.
+    vTaskDelay(pdMS_TO_TICKS(5));
 
     // Restore DATA pin to input for reading
     pinMode(_cfg.dataPin, INPUT_PULLUP);
